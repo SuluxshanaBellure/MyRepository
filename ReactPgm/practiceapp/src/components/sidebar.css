@@ -1,0 +1,9 @@
+/* .sidebar{
+    height: 500px;
+    width:100px;
+    background-color:blue; 
+} */
+
+.sidebar ul li.active {
+    background-color: #62add8; /* Your desired active item background color */
+  }

@@ -1,0 +1,8 @@
+.container{
+    height: 600px;
+        display: flex;
+        flex-wrap: wrap;
+        padding-top: 20px;
+        padding-right: 173px;
+        padding-left: 186px;
+}

@@ -1,0 +1,70 @@
+.wishlistPopup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background-color: white;
+    padding: 20px;
+    width: 332px; 
+    border: "1px solid black";
+    border-radius: 5px;
+    margin-left: "200px";
+    margin-right: "200px";
+    margin-bottom: "50px";
+    box-shadow: "5px 5px 5px  5px #D0D0D0";
+  }
+  
+  .blackBackground {
+    background-color: rgba(0, 0, 0, 0.5); 
+  }
+
+  .popupContent {
+    display: inline;
+  }
+  
+  .closeButton {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    float: left;
+    font-size: 20px;
+  }
+  
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); 
+    z-index: 999; 
+  }
+  
+  .newCollectionButton{
+    border: 1px dotted blue;
+    text-align: center;
+    width:30px;
+  }
+
+  .newCollectionPopup{
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background-color: white;
+    padding: 20px;
+    border: 1px solid black;
+    width: 500px;
+  }
+
+  .saveButton{
+    border: none;
+    background-color:  #1a8cff;
+    width:200px;
+    width: 281px;
+    height: 37px;
+    font-size: 21px;
+    text-align: center;
+  }

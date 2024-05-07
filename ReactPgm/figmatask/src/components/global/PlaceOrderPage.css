@@ -1,0 +1,80 @@
+.address-container {
+    border-top: 1px solid #f0f0f0;
+    padding: 16px 22px;
+    box-shadow: 0 -2px 10px 0 rgba(0, 0, 0, 0.1);
+    width: 68%;
+    margin-bottom: 20px;
+  }
+  
+  .input-container {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .input-container input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #ccc; /* Bottom line */
+    outline: none;
+    font-size: 16px;
+    padding-bottom: 5px; /* Adjust the space between the text and the line */
+  }
+  
+  .input-container label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #888;
+    font-size: 16px;
+    pointer-events: none;
+    transition: 0.2s ease all;
+  }
+  
+  .input-container input:focus + label,
+  .input-container input:not(:placeholder-shown) + label {
+    top: -18px; /* Move the label up when input is focused or has value */
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .submit-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .address-heading {
+    margin-bottom: 60px;
+  }
+ 
+  .input-container {
+    position: relative;
+  }
+  
+  select {
+    /* Style the select element to look like an input field */
+    appearance: none;
+    padding: 8px 32px 8px 8px; /* Adjust padding to match input fields */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+  
+  .dropdown-arrow {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    pointer-events: none; /* Ensure the arrow doesn't interfere with the select element */
+  }
+  

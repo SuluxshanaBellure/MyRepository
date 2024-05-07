@@ -1,0 +1,40 @@
+.incrementButton,
+.decrementButton {
+  border: none;
+  border-radius: 50%;
+  background-color: #f8f8f8;
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.incrementButton {
+    margin-left: 5px;
+    border: 1px solid grey;
+  }
+  
+  .decrementButton {
+    margin-right: 5px;
+    border: 1px solid grey;
+  }
+
+.removeStyle,
+.saveStyle,
+.incrementButton,
+.decrementButton {
+  cursor: pointer;
+}
+
+.deleteButtonContainer{
+    margin-left: 85% ;
+    top:-10rem;
+    position: relative;
+    border: none;
+}
+
+.deleteButton{
+    border: none;
+    color: grey;
+    background: white
+}
