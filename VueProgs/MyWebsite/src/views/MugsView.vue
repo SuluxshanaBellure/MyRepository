@@ -6,10 +6,11 @@
         v-for="(mug, index) in mugs"
         :key="index"
         class="card"
+        @click="viewProductDetail(mug.sku, mug.category_id)"
         @mouseenter="setHovered(index, true)"
         @mouseleave="setHovered(index, false)"
         :class="{ hovered: hoveredIndex === index }"
-      >
+      >{{console.log("qqqqqqq : ",mug.category_id)}}
         <div>
           <img :src="getFullImageUrl(mug.image_url)" :alt="mug.name" />
         </div>
@@ -23,16 +24,19 @@
             </button>
             <div class="additional-options" v-if="hoveredIndex === index">
               <!-- Share button/icon -->
-             <button class="share-button">
-                <i style="font-size:10px" class="fas fa-share"></i> <p style="font-size:10px">Share</p>
+              <button class="share-button">
+                <i style="font-size: 10px" class="fas fa-share"></i>
+                <p style="font-size: 10px">Share</p>
               </button>
               <!-- Compare button/icon -->
               <button class="compare-button">
-                <i style="font-size:10px" class="fa fa-balance-scale"></i> <p style="font-size:10px"> Compare</p>
+                <i style="font-size: 10px" class="fa fa-balance-scale"></i>
+                <p style="font-size: 10px">Compare</p>
               </button>
               <!-- Like button/icon -->
               <button class="like-button">
-                <i style="font-size:10px" class="fa fa-heart"></i>  <p style="font-size:10px">Like</p>
+                <i style="font-size: 10px" class="fa fa-heart"></i>
+                <p style="font-size: 10px">Like</p>
               </button>
             </div>
           </div>
@@ -45,6 +49,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const mugs = ref([]);
 const loading = ref(true);
@@ -76,7 +83,40 @@ const truncateDescription = (description) => {
 const setHovered = (index, value) => {
   hoveredIndex.value = value ? index : null;
 };
+
+const viewProductDetail = async (sku, category_id) => {
+  try {
+    let routeName = '';
+    switch (category_id) {
+      case 1:
+        routeName = 'booksDetail';
+        break;
+        case 2:
+        routeName = 'coffeemugsDetail';
+        break;
+        case 3:
+        routeName = 'mousepadsDetail';
+        break;
+        case 4:
+        routeName = 'luggagetagsDetail';
+        break;
+      default:
+        throw new Error("Invalid category ID");
+    }
+    
+    const response = await axios.get(`http://localhost:5174/coffeemugs/${sku}`);
+    if (response.status === 200) {
+      router.push({ name: routeName, params: { sku: sku } });
+    } else {
+      throw new Error("Failed to fetch product details");
+    }
+  } catch (error) {
+    console.error("Error fetching product details:", error);
+  }
+};
+
 </script>
+
 
 <style scoped>
 .mugs {
@@ -183,7 +223,7 @@ const setHovered = (index, value) => {
   justify-content: center;
   align-items: center; /* Align items vertically */
   margin-top: 10px; /* Adjust as needed */
-  margin-left:10px;
+  margin-left: 10px;
 }
 
 .additional-options button {
@@ -211,5 +251,4 @@ const setHovered = (index, value) => {
   display: flex;
   align-items: center; /* Center button content vertically */
 }
-
 </style>

@@ -9,21 +9,44 @@ const router = createRouter({
       component: () => import('../views/BooksView.vue')
     },
     {
-      path:'/mugs',
+      path:'/coffeemugs',
       name:'Mugs',
       component:()=>import('../views/MugsView.vue')
     },
     {
-      path: '/pads',
+      path: '/mousepads',
       name: 'Pads',
       component: () => import('../views/PadsView.vue')
-
     },
     {
-      path:'/tags',
+      path:'/luggagetags',
       name:'Tags',
       component:()=>import('../views/TagsView.vue')
-    }
+    },
+    { 
+      path: '/books/:sku',
+      name: 'booksDetail',
+      component: () => import('../views/ProductDetail.vue'),
+      props: true
+    },
+    { 
+      path: '/coffeemugs/:sku',
+      name: 'coffeemugsDetail',
+      component: () => import('../views/ProductDetail.vue'),
+      props: true
+    } ,
+    { 
+      path: '/mousepads/:sku',
+      name: 'mousepadsDetail',
+      component: () => import('../views/ProductDetail.vue'),
+      props: true
+    } ,
+    { 
+      path: '/luggagetags/:sku',
+      name: 'luggagetagsDetail',
+      component: () => import('../views/ProductDetail.vue'),
+      props: true
+    } 
   ]
 })
 

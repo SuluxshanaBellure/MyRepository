@@ -16,19 +16,25 @@
 
       </div>
       <!-- Navigation Links -->
-      <nav class="nav">
-        <div class="nav-section">
-          
-          <router-link to="/books">Books</router-link>
-          <router-link to="/mugs">Coffee Mugs</router-link>
+     <nav class="nav">
+          <div
+            class="nav-section"
+            @mouseover="showCategories = true"
+            @mouseleave="showCategories = false"
+          >
+           <h4 class="categories-heading"> Categories </h4>
+            <div class="categories" v-if="showCategories">
+              <router-link v-for="(subcategory, index) in subcategories" :key="index" :to="`/${subcategory.route}`">
+                {{ subcategory.name }}
+               {{ console.log("subcategories : ",subcategories)}}
 
-          <router-link to="/tags">Luggage Tags</router-link>
-
-          <router-link to="/pads">Mouse Pads</router-link>
-
-          <!-- Add more sections as needed -->
-        </div>
-      </nav>
+              </router-link>
+            </div>
+          </div>
+           <div class="cart-icon">
+            <font-awesome-icon icon="cart-shopping" style="color: white;" />
+          </div>
+        </nav>
     </header>
 
     <!-- Main Content Body -->
@@ -54,9 +60,18 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import { createRouter, createWebHistory } from 'vue-router'
-import BooksView from './views/BooksView.vue'
+import { ref } from 'vue';
+
+const subcategories = ref([
+  { name: 'Books', route: 'books' },
+  { name: 'Coffee Mugs', route: 'coffeemugs' },
+  { name: 'Luggage Tags', route: 'luggagetags' },
+  { name: 'Mouse Pads', route: 'mousepads' }
+]);
+
+// State variable to control visibility of categories
+const showCategories = ref(false);
+            {{console.log("fffffff : ",showCategories)}}
 
 </script>
 
@@ -80,7 +95,7 @@ import BooksView from './views/BooksView.vue'
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 60px;
+  height: 20px;
 }
 
 .logo {
@@ -97,7 +112,38 @@ import BooksView from './views/BooksView.vue'
 }
 
 .nav-section {
-  margin-left: 1rem;
+  margin-left: 0rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.categories-heading {
+  position: absolute;
+  /* top: 50%;
+  left: 90%; */
+  transform: translate(-50%, -50%);
+  margin-left: -773px;
+  margin-top: 3px;
+}
+
+.categories {
+  position: absolute;
+  /* top: 100%;
+  left: 50%; */
+  background-color: black;
+  border: 1px solid #ccc;
+  padding: 5px;
+  display: none;
+  margin-left: -773px;
+  margin-top: 3px;
+}
+
+.nav-section:hover .categories {
+  display: block;
+}
+
+.cart-icon {
+  margin-left: auto; /* Align to the right */
 }
 
 nav a {
@@ -137,6 +183,4 @@ nav a {
   text-decoration: none;
   margin-left: 0.5rem; /* Add margin between social links */
 }
-
 </style>
-

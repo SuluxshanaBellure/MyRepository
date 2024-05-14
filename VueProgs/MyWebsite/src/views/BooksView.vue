@@ -6,12 +6,14 @@
         v-for="(book, index) in books"
         :key="index"
         class="card"
+        @click="viewProductDetail(book.sku,book.category_id)"
         @mouseenter="setHovered(index, true)"
         @mouseleave="setHovered(index, false)"
         :class="{ hovered: hoveredIndex === index }"
       >
         <div>
-          <img :src="getFullImageUrl(book.image_url)" :alt="book.name" />
+<img :src="getFullImageUrl(book.image_url, book.category_id)" :alt="book.name" />
+    {{console.log("kkkkkkkkkkkkkkkk : ",book.category_id)}}
         </div>
         <div class="content">
           <h2 class="name">{{ book.name }}</h2>
@@ -23,16 +25,19 @@
             </button>
             <div class="additional-options" v-if="hoveredIndex === index">
               <!-- Share button/icon -->
-             <button class="share-button">
-                <i style="font-size:10px" class="fas fa-share"></i> <p style="font-size:10px">Share</p>
+              <button class="share-button">
+                <i style="font-size: 10px" class="fas fa-share"></i>
+                <p style="font-size: 10px">Share</p>
               </button>
               <!-- Compare button/icon -->
               <button class="compare-button">
-                <i style="font-size:10px" class="fa fa-balance-scale"></i> <p style="font-size:10px"> Compare</p>
+                <i style="font-size: 10px" class="fa fa-balance-scale"></i>
+                <p style="font-size: 10px">Compare</p>
               </button>
               <!-- Like button/icon -->
               <button class="like-button">
-                <i style="font-size:10px" class="fa fa-heart"></i>  <p style="font-size:10px">Like</p>
+                <i style="font-size: 10px" class="fa fa-heart"></i>
+                <p style="font-size: 10px">Like</p>
               </button>
             </div>
           </div>
@@ -45,6 +50,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const books = ref([]);
 const loading = ref(true);
@@ -65,8 +73,14 @@ onMounted(async () => {
   }
 });
 
-const getFullImageUrl = (imageUrl) => {
-  return `/books/${imageUrl}`;
+const getFullImageUrl = (imageUrl, categoryId) => {
+  switch (categoryId) {
+    case 1:
+      return `/books/${imageUrl}`;
+    // Add more cases for other category IDs if needed
+    default:
+      return imageUrl;
+  }
 };
 
 const truncateDescription = (description) => {
@@ -76,7 +90,40 @@ const truncateDescription = (description) => {
 const setHovered = (index, value) => {
   hoveredIndex.value = value ? index : null;
 };
+
+const viewProductDetail = async (sku, category_id) => {
+  try {
+    let routeName = '';
+    switch (category_id) {
+      case 1:
+        routeName = 'booksDetail';
+        break;
+        case 2:
+        routeName = 'coffeemugsDetail';
+        break;
+        case 3:
+        routeName = 'mousepadsDetail';
+        break;
+        case 4:
+        routeName = 'luggagetagsDetail';
+        break;
+      default:
+        throw new Error("Invalid category ID");
+    }
+    
+    const response = await axios.get(`http://localhost:5174/books/${sku}`);
+    if (response.status === 200) {
+      router.push({ name: routeName, params: { sku: sku } });
+    } else {
+      throw new Error("Failed to fetch product details");
+    }
+  } catch (error) {
+    console.error("Error fetching product details:", error);
+  }
+};
+
 </script>
+
 
 <style scoped>
 .books {
@@ -183,7 +230,7 @@ const setHovered = (index, value) => {
   justify-content: center;
   align-items: center; /* Align items vertically */
   margin-top: 10px; /* Adjust as needed */
-  margin-left:10px;
+  margin-left: 10px;
 }
 
 .additional-options button {
@@ -211,5 +258,4 @@ const setHovered = (index, value) => {
   display: flex;
   align-items: center; /* Center button content vertically */
 }
-
 </style>
