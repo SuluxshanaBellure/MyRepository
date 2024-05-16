@@ -1,10 +1,13 @@
 <template>
-  <div class="product-detail">
-    <h1>{{ product.name }}</h1>
-    <img :src="getFullImageUrl(product.image_url, product.category_id)" :alt="product.name" />
-    {{console.log("Category ID: ", product.category_id)}}
-    <p>{{ product.description }}</p>
-    <p>Price: ${{ product.unit_price }}</p>
+  <div class="product-wrapper">
+    <div class="product-image">
+      <img :src="getFullImageUrl(product.image_url, category_id)" :alt="product.name" />
+    </div>
+    <div class="product-detail">
+      <h1>{{ product.name }}</h1>
+      <p>{{ product.description }}</p>
+      <p style="font-weight:bold">Price: ${{ product.unit_price }}</p>
+    </div>
   </div>
 </template>
 
@@ -18,60 +21,68 @@ export default {
       required: true
     },
     category_id: {
+      type: Number,
+      required: true
+    },
+    productName: {
       type: String,
       required: true
-    }
+    },
   },
   data() {
     return {
-      product: []
+      product: {}
     };
   },
   created() {
-    this.fetchProductDetails(this.sku, this.category_id);
+    this.fetchProductDetails(this.sku, this.productName, this.category_id);
   },
   methods: {
-    async fetchProductDetails(sku, category_id) {
-  try {
-    const categoryRoute = this.getCategoryRoute(category_id);
-    console.log("Category Route:", categoryRoute);
-    const response = await axios.get(`http://localhost:5174/${categoryRoute}/${sku}`);
-    if (response.status === 200) {
-      this.product = response.data;
-    } else {
-      throw new Error("Failed to fetch product details");
-    }
-  } catch (error) {
-    console.error("Error fetching product details:", error);
-  }
-},
-    
+    async fetchProductDetails(sku, productName, category_id) {
+      try {
+        const apiUrl = `http://localhost:5174/${this.getCategoryRoute(category_id)}/${sku}/${productName}`;
+        const response = await axios.get(apiUrl);
+        if (response.status === 200) {
+          this.product = response.data;
+        } else {
+          throw new Error("Failed to fetch product details");
+        }
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+      }
+    },
     getFullImageUrl(imageUrl, category_id) {
+      const imagePath = this.determineImagePath(imageUrl, category_id);
+      console.log("Image Path:", imagePath);
+      return imagePath;
+    },
+    determineImagePath(imageUrl, category_id) {
       switch (category_id) {
-        case '1':
+        case 1:
           return `/books/${imageUrl}`;
-        case '2':
+        case 2:
           return `/coffeemugs/${imageUrl}`;
-        case '3':
+        case 3:
           return `/mousepads/${imageUrl}`;
-        case '4':
+        case 4:
           return `/luggagetags/${imageUrl}`;
         default:
           return imageUrl;
       }
     },
     getCategoryRoute(category_id) {
-      switch (category_id) {
-        case '1':
+      const categoryIdNumber = parseInt(category_id);
+      switch (categoryIdNumber) {
+        case 1:
           return 'books';
-        case '2':
+        case 2:
           return 'coffeemugs';
-        case '3':
+        case 3:
           return 'mousepads';
-        case '4':
+        case 4:
           return 'luggagetags';
         default:
-          return category_id ;
+          return null;
       }
     }
   }
@@ -79,28 +90,36 @@ export default {
 </script>
 
 <style scoped>
+.product-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex; 
+}
+
+.product-image,
 .product-detail {
-  max-width: 600px; 
-  margin: 0 auto; 
-  padding: 20px; 
+  flex: 1; 
+}
+
+.product-detail {
+  margin-left: 20px; 
 }
 
 .product-detail h1 {
-  font-size: 24px; 
+  font-size: 24px;
   margin-bottom: 10px;
 }
 
-.product-detail img {
-  max-width: 100%; 
-  margin-bottom: 20px; 
-}
-
 .product-detail p {
-  font-size: 16px; 
-  line-height: 1.5; 
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .product-detail p:last-child {
-  margin-bottom: 0; 
+  margin-bottom: 0;
+}
+
+.product-image img {
+  max-width: 100%;
 }
 </style>

@@ -23,30 +23,46 @@ const router = createRouter({
       name:'Tags',
       component:()=>import('../views/TagsView.vue')
     },
-    { 
-      path: '/books/:sku',
+    {
+      path: '/books/:pid/:pname',
       name: 'booksDetail',
       component: () => import('../views/ProductDetail.vue'),
-      props: true
+      props: route => ({
+        sku: route.params.pid,
+        productName:route.params.pname,
+        category_id:1 
+      })
     },
-    { 
-      path: '/coffeemugs/:sku',
+    {
+      path: '/coffeemugs/:pid/:pname',
       name: 'coffeemugsDetail',
       component: () => import('../views/ProductDetail.vue'),
-      props: true
-    } ,
-    { 
-      path: '/mousepads/:sku',
+      props: route => ({
+        sku: route.params.pid,
+        productName: route.params.pname,
+        category_id: 2 
+      })
+    },
+    {
+      path: '/mousepads/:pid/:pname',
       name: 'mousepadsDetail',
       component: () => import('../views/ProductDetail.vue'),
-      props: true
-    } ,
-    { 
-      path: '/luggagetags/:sku',
+      props: route => ({
+        sku: route.params.pid,
+        productName: route.params.pname,
+        category_id: 3 
+      })
+    },
+    {
+      path: '/luggagetags/:pid/:pname',
       name: 'luggagetagsDetail',
       component: () => import('../views/ProductDetail.vue'),
-      props: true
-    } 
+      props: route => ({
+        sku: route.params.pid,
+        productName: route.params.pname,
+        category_id: 4 
+      })
+    }    
   ]
 })
 

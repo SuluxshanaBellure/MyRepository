@@ -32,7 +32,7 @@
             </div>
           </div>
            <div class="cart-icon">
-            <font-awesome-icon icon="cart-shopping" style="color: white;" />
+
           </div>
         </nav>
     </header>
