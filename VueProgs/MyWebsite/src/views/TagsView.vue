@@ -3,14 +3,15 @@
     <div v-if="loading">Loading...</div>
     <div v-else class="card-container">
       <div
-        v-for="(tag, index) in tags"
+        v-for="(tag, index) in paginatedTags"
         :key="index"
         class="card"
         @click="viewProductDetail(tag.sku,tag.name,tag.category_id )"
         @mouseenter="setHovered(index, true)"
         @mouseleave="setHovered(index, false)"
         :class="{ hovered: hoveredIndex === index }"
-      >{{console.log("qqqqqqq : ",tag.category_id)}}
+      >
+        {{console.log("qqqqqqq : ",tag.category_id)}}
         <div>
           <img :src="getFullImageUrl(tag.image_url)" :alt="tag.name" />
         </div>
@@ -42,9 +43,29 @@
           </div>
         </div>
       </div>
+      <div class="controls">
+      <label for="product-count" class="product-count-label"
+        >No. of products per page :
+      </label>
+      <select
+        id="product-count"
+        v-model="productsPerPage"
+        @change="updateProductsPerPage"
+      >
+        <option
+          v-for="count in [5, 10, 15, 'all']"
+          :key="count"
+          :value="count"
+        >
+          {{ count }}
+        </option>
+      </select>
+    </div>
+    
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from "vue";
@@ -57,6 +78,8 @@ const router = useRouter();
 const tags = ref([]);
 const loading = ref(true);
 const hoveredIndex = ref(null);
+const productsPerPage = ref("all");
+const paginatedTags = ref([]);
 
 onMounted(async () => {
   try {
@@ -64,14 +87,16 @@ onMounted(async () => {
     if (response.status === 200) {
       tags.value = response.data;
       loading.value = false;
+      paginatedTags.value = tags.value;
     } else {
-      throw new Error("Failed to fetch tags");
+      throw new Error("Failed to fetch luggagetags");
     }
   } catch (error) {
-    console.error("Error fetching tags:", error);
+    console.error("Error fetching luggagetags:", error);
     loading.value = false;
   }
 });
+
 
 const getFullImageUrl = (imageUrl) => {
   return `/luggagetags/${imageUrl}`;
@@ -96,5 +121,11 @@ const viewProductDetail = async (sku, product_name, category_id) => {
   }
 };
 
-
+const updateProductsPerPage = () => {
+  if (productsPerPage.value === "all") {
+    paginatedTags.value = tags.value;
+  } else {
+    paginatedTags.value = tags.value.slice(0, productsPerPage.value);
+  }
+};
 </script>

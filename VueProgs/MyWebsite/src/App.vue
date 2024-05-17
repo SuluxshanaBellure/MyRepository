@@ -1,62 +1,57 @@
 <template>
-<div class="content">
-  <div class="app">
-    <!-- Header -->
-    <header class="header">
-      <!-- Logo and Home Link -->
-      <div class="logo-home">
-       <a href="/">
-  <img
-    alt="Vue logo"
-    class="logo"
-    src="@/assets/logo.svg"
-    height="40px"
-    width= "40px"  />
-</a>
-
-      </div>
-      <!-- Navigation Links -->
-     <nav class="nav">
+  <div class="content">
+    <div class="app">
+      <!-- Header -->
+      <header class="header">
+        <!-- Logo and Home Link -->
+        <div class="logo-home">
+          <a href="/">
+            <img
+              alt="Vue logo"
+              class="logo"
+              src="@/assets/logo.svg"
+              height="40px"
+              width="40px" />
+          </a>
+        </div>
+        <!-- Navigation Links -->
+        <nav class="nav">
           <div
             class="nav-section"
             @mouseover="showCategories = true"
             @mouseleave="showCategories = false"
           >
-           <h4 class="categories-heading"> Categories </h4>
+            <h4 class="categories-heading"> Categories </h4>
             <div class="categories" v-if="showCategories">
               <router-link v-for="(subcategory, index) in subcategories" :key="index" :to="`/${subcategory.route}`">
                 {{ subcategory.name }}
-               {{ console.log("subcategories : ",subcategories)}}
-
               </router-link>
             </div>
           </div>
-           <div class="cart-icon">
-
+          <div class="cart-icon">
+            <!-- Cart icon content -->
           </div>
         </nav>
-    </header>
+      </header>
 
-    <!-- Main Content Body -->
-    <main>
-      <router-view></router-view>
-    </main>
+      <!-- Main Content Body -->
+      <main>
+        <router-view></router-view>
+      </main>
 
-    <!-- Footer -->
-   
-  </div>
- <footer class="footer">
-  <div class="footer-content">
-    <p>&copy; 2024 Your Company. All rights reserved.</p>
-    <div class="social-links">
-      <a href="#">Facebook</a>
-      <a href="#">Twitter</a>
-      <a href="#">Instagram</a>
+      <!-- Footer -->
     </div>
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+        <div class="social-links">
+          <a href="#">Facebook</a>
+          <a href="#">Twitter</a>
+          <a href="#">Instagram</a>
+        </div>
+      </div>
+    </footer>
   </div>
-</footer>
-
-</div>
 </template>
 
 <script setup>
@@ -69,15 +64,12 @@ const subcategories = ref([
   { name: 'Mouse Pads', route: 'mousepads' }
 ]);
 
-// State variable to control visibility of categories
 const showCategories = ref(false);
-            {{console.log("fffffff : ",showCategories)}}
-
 </script>
 
 <style scoped>
 /* App Styles */
-.content{
+.content {
   /* width:100%; */
 }
 
@@ -95,7 +87,7 @@ const showCategories = ref(false);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 20px;
+  height: 30px; 
 }
 
 .logo {
@@ -115,31 +107,27 @@ const showCategories = ref(false);
   margin-left: 0rem;
   position: relative;
   cursor: pointer;
+  padding-right: 650px;
 }
 
 .categories-heading {
-  position: absolute;
-  /* top: 50%;
-  left: 90%; */
-  transform: translate(-50%, -50%);
-  margin-left: -773px;
-  margin-top: 3px;
+  margin-left: 10px;
 }
 
 .categories {
   position: absolute;
-  /* top: 100%;
-  left: 50%; */
   background-color: black;
   border: 1px solid #ccc;
   padding: 5px;
-  display: none;
-  margin-left: -773px;
-  margin-top: 3px;
+  display: flex;
+  flex-direction: column;
+  top: 100%;
+  left: 0;
+  z-index: 10;
 }
 
 .nav-section:hover .categories {
-  display: block;
+  display: flex;
 }
 
 .cart-icon {
@@ -149,13 +137,12 @@ const showCategories = ref(false);
 nav a {
   color: white;
   text-decoration: none;
-  margin: 0 0.5rem;
+  margin: 0.5rem 0; /* Margin to separate each category link */
 }
 
 /* Main Styles */
 .main {
   flex: 1; /* Take remaining space */
-  /* padding: 2rem; */
 }
 
 /* Footer Styles */
@@ -164,14 +151,14 @@ nav a {
   color: white;
   text-align: center;
   padding: 1rem;
-  height: 60px;
+  height: 30px;
 }
 
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 0rem; /* Add padding to create space between content and social links */
+  margin-top: -10px;
 }
 
 .social-links {

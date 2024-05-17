@@ -3,7 +3,7 @@
     <div v-if="loading">Loading...</div>
     <div v-else class="card-container">
       <div
-        v-for="(pad, index) in pads"
+        v-for="(pad, index) in paginatedPads"
         :key="index"
         class="card"
         @click="viewProductDetail(pad.sku,pad.name,pad.category_id )"
@@ -41,6 +41,25 @@
             </div>
           </div>
         </div>
+        
+      </div>
+      <div class="controls">
+        <label for="product-count" class="product-count-label"
+          >No. of products per page :
+        </label>
+        <select
+          id="product-count"
+          v-model="productsPerPage"
+          @change="updateProductsPerPage"
+        >
+          <option
+            v-for="count in [5, 10, 15, 'all']"
+            :key="count"
+            :value="count"
+          >
+            {{ count }}
+          </option>
+        </select>
       </div>
     </div>
   </div>
@@ -57,6 +76,8 @@ const router = useRouter();
 const pads = ref([]);
 const loading = ref(true);
 const hoveredIndex = ref(null);
+const productsPerPage = ref("all");
+const paginatedPads = ref([]);
 
 onMounted(async () => {
   try {
@@ -64,11 +85,12 @@ onMounted(async () => {
     if (response.status === 200) {
       pads.value = response.data;
       loading.value = false;
+      paginatedPads.value = pads.value;
     } else {
-      throw new Error("Failed to fetch pads");
+      throw new Error("Failed to fetch mousepads");
     }
   } catch (error) {
-    console.error("Error fetching pads:", error);
+    console.error("Error fetching mousepads:", error);
     loading.value = false;
   }
 });
@@ -96,5 +118,11 @@ const viewProductDetail = async (sku, product_name, category_id) => {
   }
 };
 
-
+const updateProductsPerPage = () => {
+  if (productsPerPage.value === "all") {
+    paginatedPads.value = pads.value;
+  } else {
+    paginatedPads.value = pads.value.slice(0, productsPerPage.value);
+  }
+};
 </script>

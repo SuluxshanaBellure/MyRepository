@@ -3,14 +3,15 @@
     <div v-if="loading">Loading...</div>
     <div v-else class="card-container">
       <div
-        v-for="(mug, index) in mugs"
+        v-for="(mug, index) in paginatedMugs"
         :key="index"
         class="card"
         @click="viewProductDetail(mug.sku,mug.name,mug.category_id )"
         @mouseenter="setHovered(index, true)"
         @mouseleave="setHovered(index, false)"
         :class="{ hovered: hoveredIndex === index }"
-      >{{console.log("qqqqqqq : ",mug.category_id)}}
+      >
+      {{console.log("qqqqqqq : ",mug.category_id)}}
         <div>
           <img :src="getFullImageUrl(mug.image_url)" :alt="mug.name" />
         </div>
@@ -23,17 +24,14 @@
               Add to Cart
             </button>
             <div class="additional-options" v-if="hoveredIndex === index">
-              <!-- Share button/icon -->
               <button class="share-button">
                 <i style="font-size: 10px" class="fas fa-share"></i>
                 <p style="font-size: 10px">Share</p>
               </button>
-              <!-- Compare button/icon -->
               <button class="compare-button">
                 <i style="font-size: 10px" class="fa fa-balance-scale"></i>
                 <p style="font-size: 10px">Compare</p>
               </button>
-              <!-- Like button/icon -->
               <button class="like-button">
                 <i style="font-size: 10px" class="fa fa-heart"></i>
                 <p style="font-size: 10px">Like</p>
@@ -41,6 +39,24 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="controls">
+        <label for="product-count" class="product-count-label"
+          >No. of products per page :
+        </label>
+        <select
+          id="product-count"
+          v-model="productsPerPage"
+          @change="updateProductsPerPage"
+        >
+          <option
+            v-for="count in [5, 10, 15, 'all']"
+            :key="count"
+            :value="count"
+          >
+            {{ count }}
+          </option>
+        </select>
       </div>
     </div>
   </div>
@@ -57,6 +73,8 @@ const router = useRouter();
 const mugs = ref([]);
 const loading = ref(true);
 const hoveredIndex = ref(null);
+const productsPerPage = ref("all");
+const paginatedMugs = ref([]);
 
 onMounted(async () => {
   try {
@@ -64,8 +82,9 @@ onMounted(async () => {
     if (response.status === 200) {
       mugs.value = response.data;
       loading.value = false;
+      paginatedMugs.value = mugs.value;
     } else {
-      throw new Error("Failed to fetch mugs");
+      throw new Error("Failed to fetch mug");
     }
   } catch (error) {
     console.error("Error fetching mugs:", error);
@@ -96,5 +115,12 @@ const viewProductDetail = async (sku, product_name, category_id) => {
   }
 };
 
+const updateProductsPerPage = () => {
+  if (productsPerPage.value === "all") {
+    paginatedMugs.value = mugs.value;
+  } else {
+    paginatedMugs.value = mugs.value.slice(0, productsPerPage.value);
+  }
+};
 
 </script>

@@ -131,6 +131,13 @@
     align-items: center; /* Center button content vertically */
   }
   
+  .product-count-label{
+    font-weight: bold;
+    font-family: "Robotics", sans-serif;
+    font-size: 12px;
+  }
+
+  /* coffeemugs plp */
   .mugs {
     display: flex;
     justify-content: center;
@@ -263,6 +270,8 @@
     display: flex;
     align-items: center; /* Center button content vertically */
   }
+
+  /* luggage tags plp */
   .tags {
     display: flex;
     justify-content: center;
@@ -396,6 +405,7 @@
     align-items: center; /* Center button content vertically */
   }
 
+  /* mouse pads plp */
   .pads {
     display: flex;
     justify-content: center;
@@ -523,9 +533,9 @@
     color: white;
     border: none;
     font-family: "Roboto", sans-serif;
-    padding: 4px 4px; /* Increase padding to increase button size */
-    margin-right: 2px; /* Adjust margin between buttons */
+    padding: 4px 4px; 
+    margin-right: 2px; 
     display: flex;
-    align-items: center; /* Center button content vertically */
+    align-items: center; 
   }
   
