@@ -3,14 +3,14 @@
     <div v-if="loading">Loading...</div>
     <div v-else class="card-container">
       <div
-        v-for="(pad, index) in paginatedPads"
+        v-for="(pad, index) in paginatedpads"
         :key="index"
         class="card"
-        @click="viewProductDetail(pad.sku,pad.name,pad.category_id )"
+        @click="viewProductDetail(pad.sku, pad.name, pad.category_id)"
         @mouseenter="setHovered(index, true)"
         @mouseleave="setHovered(index, false)"
         :class="{ hovered: hoveredIndex === index }"
-      >{{console.log("qqqqqqq : ",pad.category_id)}}
+      >
         <div>
           <img :src="getFullImageUrl(pad.image_url)" :alt="pad.name" />
         </div>
@@ -18,90 +18,90 @@
           <h2 class="name">{{ pad.name }}</h2>
           <p class="description">{{ truncateDescription(pad.description) }}</p>
           <p class="price">${{ pad.unit_price }}</p>
-          <div class="cart-button">
-            <button v-if="hoveredIndex === index" class="add-to-cart">
-              Add to Cart
-            </button>
-            <div class="additional-options" v-if="hoveredIndex === index">
-              <!-- Share button/icon -->
+          <div class="cart-button" v-if="hoveredIndex === index">
+            <button class="add-to-cart">Add to Cart</button>
+            <div class="additional-options">
               <button class="share-button">
-                <i style="font-size: 10px" class="fas fa-share"></i>
+                <i class="fas fa-share" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Share</p>
               </button>
-              <!-- Compare button/icon -->
               <button class="compare-button">
-                <i style="font-size: 10px" class="fa fa-balance-scale"></i>
+                <i class="fa fa-balance-scale" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Compare</p>
               </button>
-              <!-- Like button/icon -->
               <button class="like-button">
-                <i style="font-size: 10px" class="fa fa-heart"></i>
+                <i class="fa fa-heart" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Like</p>
               </button>
             </div>
           </div>
         </div>
-        
       </div>
-      <div class="controls">
-        <label for="product-count" class="product-count-label"
-          >No. of products per page :
-        </label>
-        <select
-          id="product-count"
-          v-model="productsPerPage"
-          @change="updateProductsPerPage"
-        >
-          <option
-            v-for="count in [5, 10, 15, 'all']"
-            :key="count"
-            :value="count"
-          >
-            {{ count }}
-          </option>
-        </select>
+      
+      <div class="pagination-controls">
+        <div>
+          <label for="product-count" class="product-count-label">No. of products per page:</label>
+          <select id="product-count" v-model="productsPerPage" @change="updateProductsPerPage">
+            <option v-for="count in [5, 10, 15, 'all']" :key="count" :value="count">{{ count }}</option>
+          </select>
+        </div>
+        <div>
+          <b-pagination
+            v-if="productsPerPage !== 'all'"
+            v-model="currentPage"
+            :total-rows="pads.length"
+            :per-page="productsPerPage"
+            aria-controls="example-table"
+          ></b-pagination>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
-import { useRouter } from "vue-router";
-import "../assets/plp.css";
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css';
+import { BPagination } from 'bootstrap-vue-next';
+import '../assets/plp.css';
 
 const router = useRouter();
-
 const pads = ref([]);
 const loading = ref(true);
 const hoveredIndex = ref(null);
-const productsPerPage = ref("all");
-const paginatedPads = ref([]);
+const productsPerPage = ref('all');
+const currentPage = ref(1);
 
 onMounted(async () => {
   try {
-    const response = await axios.get("http://localhost:5174/mousepads");
+    const response = await axios.get('http://localhost:5174/mousepads');
     if (response.status === 200) {
       pads.value = response.data;
-      loading.value = false;
-      paginatedPads.value = pads.value;
     } else {
-      throw new Error("Failed to fetch mousepads");
+      throw new Error('Failed to fetch pads');
     }
   } catch (error) {
-    console.error("Error fetching mousepads:", error);
+    console.error('Error fetching pads:', error);
+  } finally {
     loading.value = false;
   }
 });
 
-const getFullImageUrl = (imageUrl) => {
-  return `/mousepads/${imageUrl}`;
-};
+const paginatedpads = computed(() => {
+  if (productsPerPage.value === 'all') {
+    return pads.value;
+  }
+  const start = (currentPage.value - 1) * parseInt(productsPerPage.value);
+  const end = start + parseInt(productsPerPage.value);
+  return pads.value.slice(start, end);
+});
 
-const truncateDescription = (description) => {
-  return description.slice(0, 30);
-};
+const getFullImageUrl = (imageUrl) => `/mousepads/${imageUrl}`;
+
+const truncateDescription = (description) => description.slice(0, 30);
 
 const setHovered = (index, value) => {
   hoveredIndex.value = value ? index : null;
@@ -109,20 +109,27 @@ const setHovered = (index, value) => {
 
 const viewProductDetail = async (sku, product_name, category_id) => {
   try {
-    category_id=3;
-    const routeName = 'mousepadsDetail'; 
-    const url = `http://localhost:5174/mousepads/${sku}/${encodeURIComponent(product_name)}`;
-    router.push({ name: routeName, params: { pid: `${sku}`, pname: encodeURIComponent(product_name),category_id:`${category_id}` } });
+    console.log("Navigating to product detail page...");
+    category_id = 3;
+    const routeName = "mousepadsDetail";
+    const url = `http://localhost:5174/mousepads/${sku}/${encodeURIComponent(
+      product_name
+    )}`;
+    console.log("Route URL:", url);
+    router.push({
+      name: routeName,
+      params: {
+        pid: `${sku}`,
+        pname: encodeURIComponent(product_name),
+        category_id: `${category_id}`,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching product details:", error);
+    console.error("Error navigating to product detail page:", error);
   }
 };
 
 const updateProductsPerPage = () => {
-  if (productsPerPage.value === "all") {
-    paginatedPads.value = pads.value;
-  } else {
-    paginatedPads.value = pads.value.slice(0, productsPerPage.value);
-  }
+  currentPage.value = 1;
 };
 </script>

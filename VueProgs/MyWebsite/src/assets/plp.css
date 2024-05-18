@@ -137,6 +137,23 @@
     font-size: 12px;
   }
 
+  .controls{
+    padding-left: 1008px;
+  }
+
+  .pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px; /* Adjust as needed */
+    gap: 712px;
+  }
+  
+  .pagination-controls > div {
+    display: flex;
+    align-items: center;
+  }
+  
   /* coffeemugs plp */
   .mugs {
     display: flex;
@@ -269,6 +286,19 @@
     margin-right: 2px; /* Adjust margin between buttons */
     display: flex;
     align-items: center; /* Center button content vertically */
+  }
+
+  pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px; /* Adjust as needed */
+    gap: 712px;
+  }
+  
+  .pagination-controls > div {
+    display: flex;
+    align-items: center;
   }
 
   /* luggage tags plp */
@@ -405,6 +435,19 @@
     align-items: center; /* Center button content vertically */
   }
 
+  pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px; /* Adjust as needed */
+    gap: 712px;
+  }
+  
+  .pagination-controls > div {
+    display: flex;
+    align-items: center;
+  }
+
   /* mouse pads plp */
   .pads {
     display: flex;
@@ -538,4 +581,18 @@
     display: flex;
     align-items: center; 
   }
+  
+  pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px; /* Adjust as needed */
+    gap: 712px;
+  }
+  
+  .pagination-controls > div {
+    display: flex;
+    align-items: center;
+  }
+
   

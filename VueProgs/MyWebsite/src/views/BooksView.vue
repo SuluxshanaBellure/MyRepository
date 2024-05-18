@@ -3,7 +3,7 @@
     <div v-if="loading">Loading...</div>
     <div v-else class="card-container">
       <div
-        v-for="(book, index) in paginatedBooks"
+        v-for="(book, index) in paginatedbooks"
         :key="index"
         class="card"
         @click="viewProductDetail(book.sku, book.name, book.category_id)"
@@ -18,77 +18,85 @@
           <h2 class="name">{{ book.name }}</h2>
           <p class="description">{{ truncateDescription(book.description) }}</p>
           <p class="price">${{ book.unit_price }}</p>
-          <div class="cart-button">
-            <button v-if="hoveredIndex === index" class="add-to-cart">
-              Add to Cart
-            </button>
-            <div class="additional-options" v-if="hoveredIndex === index">
+          <div class="cart-button" v-if="hoveredIndex === index">
+            <button class="add-to-cart">Add to Cart</button>
+            <div class="additional-options">
               <button class="share-button">
-                <i style="font-size: 10px" class="fas fa-share"></i>
+                <i class="fas fa-share" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Share</p>
               </button>
               <button class="compare-button">
-                <i style="font-size: 10px" class="fa fa-balance-scale"></i>
+                <i class="fa fa-balance-scale" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Compare</p>
               </button>
               <button class="like-button">
-                <i style="font-size: 10px" class="fa fa-heart"></i>
+                <i class="fa fa-heart" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Like</p>
               </button>
             </div>
           </div>
         </div>
       </div>
-      <div class="controls">
-        <label for="product-count" class="product-count-label"
-          >No. of products per page :
-        </label>
-        <select
-          id="product-count"
-          v-model="productsPerPage"
-          @change="updateProductsPerPage"
-        >
-          <option
-            v-for="count in [5, 10, 15, 'all']"
-            :key="count"
-            :value="count"
-          >
-            {{ count }}
-          </option>
-        </select>
+      
+      <div class="pagination-controls">
+        <div>
+          <label for="product-count" class="product-count-label">No. of products per page:</label>
+          <select id="product-count" v-model="productsPerPage" @change="updateProductsPerPage">
+            <option v-for="count in [5, 10, 15, 'all']" :key="count" :value="count">{{ count }}</option>
+          </select>
+        </div>
+        <div>
+          <b-pagination
+            v-if="productsPerPage !== 'all'"
+            v-model="currentPage"
+            :total-rows="books.length"
+            :per-page="productsPerPage"
+            aria-controls="example-table"
+          ></b-pagination>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import axios from "axios";
-import { useRouter } from "vue-router";
-import "../assets/plp.css";
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css';
+import { BPagination } from 'bootstrap-vue-next';
+import '../assets/plp.css';
 
 const router = useRouter();
-
 const books = ref([]);
 const loading = ref(true);
 const hoveredIndex = ref(null);
-const productsPerPage = ref("all");
-const paginatedBooks = ref([]);
+const productsPerPage = ref('all');
+const currentPage = ref(1);
 
 onMounted(async () => {
   try {
-    const response = await axios.get("http://localhost:5174/books");
+    const response = await axios.get('http://localhost:5174/books');
     if (response.status === 200) {
       books.value = response.data;
-      loading.value = false;
-      paginatedBooks.value = books.value;
     } else {
-      throw new Error("Failed to fetch books");
+      throw new Error('Failed to fetch books');
     }
   } catch (error) {
-    console.error("Error fetching books:", error);
+    console.error('Error fetching books:', error);
+  } finally {
     loading.value = false;
   }
+});
+
+const paginatedbooks = computed(() => {
+  if (productsPerPage.value === 'all') {
+    return books.value;
+  }
+  const start = (currentPage.value - 1) * parseInt(productsPerPage.value);
+  const end = start + parseInt(productsPerPage.value);
+  return books.value.slice(start, end);
 });
 
 const getFullImageUrl = (imageUrl) => `/books/${imageUrl}`;
@@ -122,10 +130,6 @@ const viewProductDetail = async (sku, product_name, category_id) => {
 };
 
 const updateProductsPerPage = () => {
-  if (productsPerPage.value === "all") {
-    paginatedBooks.value = books.value;
-  } else {
-    paginatedBooks.value = books.value.slice(0, productsPerPage.value);
-  }
+  currentPage.value = 1;
 };
 </script>

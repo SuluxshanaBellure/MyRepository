@@ -3,15 +3,14 @@
     <div v-if="loading">Loading...</div>
     <div v-else class="card-container">
       <div
-        v-for="(mug, index) in paginatedMugs"
+        v-for="(mug, index) in paginatedmugs"
         :key="index"
         class="card"
-        @click="viewProductDetail(mug.sku,mug.name,mug.category_id )"
+        @click="viewProductDetail(mug.sku, mug.name, mug.category_id)"
         @mouseenter="setHovered(index, true)"
         @mouseleave="setHovered(index, false)"
         :class="{ hovered: hoveredIndex === index }"
       >
-      {{console.log("qqqqqqq : ",mug.category_id)}}
         <div>
           <img :src="getFullImageUrl(mug.image_url)" :alt="mug.name" />
         </div>
@@ -19,86 +18,90 @@
           <h2 class="name">{{ mug.name }}</h2>
           <p class="description">{{ truncateDescription(mug.description) }}</p>
           <p class="price">${{ mug.unit_price }}</p>
-          <div class="cart-button">
-            <button v-if="hoveredIndex === index" class="add-to-cart">
-              Add to Cart
-            </button>
-            <div class="additional-options" v-if="hoveredIndex === index">
+          <div class="cart-button" v-if="hoveredIndex === index">
+            <button class="add-to-cart">Add to Cart</button>
+            <div class="additional-options">
               <button class="share-button">
-                <i style="font-size: 10px" class="fas fa-share"></i>
+                <i class="fas fa-share" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Share</p>
               </button>
               <button class="compare-button">
-                <i style="font-size: 10px" class="fa fa-balance-scale"></i>
+                <i class="fa fa-balance-scale" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Compare</p>
               </button>
               <button class="like-button">
-                <i style="font-size: 10px" class="fa fa-heart"></i>
+                <i class="fa fa-heart" style="font-size: 10px"></i>
                 <p style="font-size: 10px">Like</p>
               </button>
             </div>
           </div>
         </div>
       </div>
-      <div class="controls">
-        <label for="product-count" class="product-count-label"
-          >No. of products per page :
-        </label>
-        <select
-          id="product-count"
-          v-model="productsPerPage"
-          @change="updateProductsPerPage"
-        >
-          <option
-            v-for="count in [5, 10, 15, 'all']"
-            :key="count"
-            :value="count"
-          >
-            {{ count }}
-          </option>
-        </select>
+      
+      <div class="pagination-controls">
+        <div>
+          <label for="product-count" class="product-count-label">No. of products per page:</label>
+          <select id="product-count" v-model="productsPerPage" @change="updateProductsPerPage">
+            <option v-for="count in [5, 10, 15, 'all']" :key="count" :value="count">{{ count }}</option>
+          </select>
+        </div>
+        <div>
+          <b-pagination
+            v-if="productsPerPage !== 'all'"
+            v-model="currentPage"
+            :total-rows="mugs.length"
+            :per-page="productsPerPage"
+            aria-controls="example-table"
+          ></b-pagination>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
-import { useRouter } from "vue-router";
-import "../assets/plp.css";
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue-next/dist/bootstrap-vue-next.css';
+import { BPagination } from 'bootstrap-vue-next';
+import '../assets/plp.css';
 
 const router = useRouter();
-
 const mugs = ref([]);
 const loading = ref(true);
 const hoveredIndex = ref(null);
-const productsPerPage = ref("all");
-const paginatedMugs = ref([]);
+const productsPerPage = ref('all');
+const currentPage = ref(1);
 
 onMounted(async () => {
   try {
-    const response = await axios.get("http://localhost:5174/coffeemugs");
+    const response = await axios.get('http://localhost:5174/mousepads');
     if (response.status === 200) {
       mugs.value = response.data;
-      loading.value = false;
-      paginatedMugs.value = mugs.value;
     } else {
-      throw new Error("Failed to fetch mug");
+      throw new Error('Failed to fetch mugs');
     }
   } catch (error) {
-    console.error("Error fetching mugs:", error);
+    console.error('Error fetching mugs:', error);
+  } finally {
     loading.value = false;
   }
 });
 
-const getFullImageUrl = (imageUrl) => {
-  return `/coffeemugs/${imageUrl}`;
-};
+const paginatedmugs = computed(() => {
+  if (productsPerPage.value === 'all') {
+    return mugs.value;
+  }
+  const start = (currentPage.value - 1) * parseInt(productsPerPage.value);
+  const end = start + parseInt(productsPerPage.value);
+  return mugs.value.slice(start, end);
+});
 
-const truncateDescription = (description) => {
-  return description.slice(0, 30);
-};
+const getFullImageUrl = (imageUrl) => `/mousepads/${imageUrl}`;
+
+const truncateDescription = (description) => description.slice(0, 30);
 
 const setHovered = (index, value) => {
   hoveredIndex.value = value ? index : null;
@@ -106,21 +109,27 @@ const setHovered = (index, value) => {
 
 const viewProductDetail = async (sku, product_name, category_id) => {
   try {
-    category_id=2;
-    const routeName = 'coffeemugsDetail'; 
-    const url = `http://localhost:5174/coffemugs/${sku}/${encodeURIComponent(product_name)}`;
-    router.push({ name: routeName, params: { pid: `${sku}`, pname: encodeURIComponent(product_name),category_id:`${category_id}` } });
+    console.log("Navigating to product detail page...");
+    category_id = 2;
+    const routeName = "coffeemugsDetail";
+    const url = `http://localhost:5174/mousepads/${sku}/${encodeURIComponent(
+      product_name
+    )}`;
+    console.log("Route URL:", url);
+    router.push({
+      name: routeName,
+      params: {
+        pid: `${sku}`,
+        pname: encodeURIComponent(product_name),
+        category_id: `${category_id}`,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching product details:", error);
+    console.error("Error navigating to product detail page:", error);
   }
 };
 
 const updateProductsPerPage = () => {
-  if (productsPerPage.value === "all") {
-    paginatedMugs.value = mugs.value;
-  } else {
-    paginatedMugs.value = mugs.value.slice(0, productsPerPage.value);
-  }
+  currentPage.value = 1;
 };
-
 </script>

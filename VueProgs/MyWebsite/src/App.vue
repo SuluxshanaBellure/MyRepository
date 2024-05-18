@@ -87,7 +87,7 @@ const showCategories = ref(false);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 30px; 
+  height: 40px; 
 }
 
 .logo {
@@ -112,6 +112,7 @@ const showCategories = ref(false);
 
 .categories-heading {
   margin-left: 10px;
+  font-size: 12px;
 }
 
 .categories {
@@ -151,7 +152,7 @@ nav a {
   color: white;
   text-align: center;
   padding: 1rem;
-  height: 30px;
+  height: 40px;
 }
 
 .footer-content {
