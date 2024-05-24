@@ -3,33 +3,45 @@
     <div class="app">
       <!-- Header -->
       <header class="header">
-        <!-- Logo and Home Link -->
-        <div class="logo-home">
-          <a href="/">
+        <!-- Logo and Categories Link -->
+        <div class="logo-categories">
+          <a href="/" class="logo-home">
             <img
               alt="Vue logo"
               class="logo"
               src="@/assets/logo.svg"
               height="40px"
-              width="40px" />
+              width="40px"
+            />
           </a>
-        </div>
-        <!-- Navigation Links -->
-        <nav class="nav">
           <div
             class="nav-section"
             @mouseover="showCategories = true"
             @mouseleave="showCategories = false"
           >
-            <h4 class="categories-heading"> Categories </h4>
+            <h4 class="categories-heading">Categories</h4>
             <div class="categories" v-if="showCategories">
-              <router-link v-for="(subcategory, index) in subcategories" :key="index" :to="`/${subcategory.route}`">
+              <router-link
+                v-for="(subcategory, index) in subcategories"
+                :key="index"
+                :to="`/${subcategory.route}`"
+              >
                 {{ subcategory.name }}
               </router-link>
             </div>
           </div>
+        </div>
+        <!-- Navigation Links -->
+        <nav class="nav">
+          <div v-if="username" class="user-info">
+            <span class="greeting">Hello, {{ username }}</span>
+          </div>
+          <span class="user-icon" @click="openSignInForm">
+            <i class="fas fa-user"></i>
+          </span>
+          <h4 style="color:red" @click="signOut">Sign Out</h4>
           <div class="cart-icon">
-            <!-- Cart icon content -->
+            <i class="fas fa-shopping-cart"></i>
           </div>
         </nav>
       </header>
@@ -40,35 +52,93 @@
       </main>
 
       <!-- Footer -->
-    </div>
-    <footer class="footer">
-      <div class="footer-content">
-        <p>&copy; 2024 Your Company. All rights reserved.</p>
-        <div class="social-links">
-          <a href="#">Facebook</a>
-          <a href="#">Twitter</a>
-          <a href="#">Instagram</a>
+      <footer class="footer">
+        <div class="footer-content">
+          <p>&copy; 2024 Your Company. All rights reserved.</p>
+          <div class="social-links">
+            <a href="#">Facebook</a>
+            <a href="#">Twitter</a>
+            <a href="#">Instagram</a>
+          </div>
         </div>
+      </footer>
+
+      <!-- Modals -->
+      <div v-if="showSignInForm">
+        <SignInForm @close="closeSignInForm" @loggedIn="handleLoggedIn" />
       </div>
-    </footer>
+      <div v-if="showRegisterForm">
+        <RegisterForm @close="closeRegisterForm" @registered="handleRegistered" />
+      </div>
+    </div>
   </div>
 </template>
 
+
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from "vue";
+import SignInForm from "./views/SignInForm.vue";
+import RegisterForm from "./views/RegisterForm.vue";
+import { useRoute } from 'vue-router';
 
 const subcategories = ref([
-  { name: 'Books', route: 'books' },
-  { name: 'Coffee Mugs', route: 'coffeemugs' },
-  { name: 'Luggage Tags', route: 'luggagetags' },
-  { name: 'Mouse Pads', route: 'mousepads' }
+  { name: "Books", route: "books" },
+  { name: "Coffee Mugs", route: "coffeemugs" },
+  { name: "Luggage Tags", route: "luggagetags" },
+  { name: "Mouse Pads", route: "mousepads" },
 ]);
 
 const showCategories = ref(false);
+const showSignInForm = ref(false);
+const showRegisterForm = ref(false);
+const username = ref('');
+const route = useRoute();
+
+function openSignInForm() {
+  showSignInForm.value = true;
+  showRegisterForm.value = false; // Ensure only one form is displayed at a time
+}
+
+function openRegisterForm() {
+  showRegisterForm.value = true;
+  showSignInForm.value = false; // Ensure only one form is displayed at a time
+}
+
+function closeSignInForm() {
+  showSignInForm.value = false;
+}
+
+function closeRegisterForm() {
+  showRegisterForm.value = false;
+}
+
+function handleRegistered(registeredUsername) {
+  username.value = registeredUsername;
+  closeRegisterForm();
+}
+
+function handleLoggedIn(loggedInUsername) {
+  username.value = loggedInUsername;
+  closeSignInForm();
+  setTimeout(() => {
+    alert(`Welcome, ${loggedInUsername}!`);
+  }, 300);
+}
+
+function signOut() {
+  username.value = '';
+}
+
+watch(() => route.query.registered, (registered) => {
+  if (registered) {
+    // If a new user has registered, reload the page
+    window.location.reload();
+  }
+});
+
 </script>
 
 <style scoped>
-/* App Styles */
 .content {
   /* width:100%; */
 }
@@ -76,7 +146,7 @@ const showCategories = ref(false);
 .app {
   display: flex;
   flex-direction: column;
-  min-height: 88vh;
+  min-height: 100vh;
 }
 
 /* Header Styles */
@@ -87,7 +157,11 @@ const showCategories = ref(false);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 40px; 
+}
+
+.logo-categories {
+  display: flex;
+  align-items: center;
 }
 
 .logo {
@@ -101,18 +175,17 @@ const showCategories = ref(false);
 
 .nav {
   display: flex;
+  margin-left: auto; /* Align navigation to the right */
 }
 
 .nav-section {
-  margin-left: 0rem;
   position: relative;
   cursor: pointer;
-  padding-right: 650px;
+  margin-left: 10px;
 }
 
 .categories-heading {
-  margin-left: 10px;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .categories {
@@ -125,6 +198,7 @@ const showCategories = ref(false);
   top: 100%;
   left: 0;
   z-index: 10;
+  width: 150px;
 }
 
 .nav-section:hover .categories {
@@ -132,17 +206,22 @@ const showCategories = ref(false);
 }
 
 .cart-icon {
-  margin-left: auto; /* Align to the right */
+  margin-left: 20px; /* Add some space to the right */
 }
 
-nav a {
-  color: white;
-  text-decoration: none;
-  margin: 0.5rem 0; /* Margin to separate each category link */
+.user-icon {
+  margin-right: 10px; /* Add some space to the right */
+  cursor: pointer; /* Add cursor pointer */
+}
+
+.user-icon i {
+  font-size: 1.5rem; /* Adjust the size of the user icon */
+  color: white; /* Set the color of the user icon to white */
+  display: inline-block; /* Ensure the icon is displayed inline */
 }
 
 /* Main Styles */
-.main {
+main {
   flex: 1; /* Take remaining space */
 }
 
@@ -150,16 +229,13 @@ nav a {
 .footer {
   background-color: #333;
   color: white;
-  text-align: center;
   padding: 1rem;
-  height: 40px;
 }
 
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: -10px;
 }
 
 .social-links {
@@ -169,6 +245,6 @@ nav a {
 .social-links a {
   color: white;
   text-decoration: none;
-  margin-left: 0.5rem; /* Add margin between social links */
+  margin-left: 0.5rem;
 }
 </style>

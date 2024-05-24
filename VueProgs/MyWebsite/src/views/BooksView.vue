@@ -51,7 +51,6 @@
             v-model="currentPage"
             :total-rows="books.length"
             :per-page="productsPerPage"
-            aria-controls="example-table"
           ></b-pagination>
         </div>
       </div>

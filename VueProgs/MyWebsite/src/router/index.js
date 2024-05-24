@@ -62,7 +62,17 @@ const router = createRouter({
         productName: route.params.pname,
         category_id: 4 
       })
-    }    
+    },
+    {
+      path:'/login',
+      name:'login',
+      component:()=>import('../views/SignInForm.vue'),
+    },
+    {
+      path:'/register',
+      name:'register',
+      component:()=>import('../views/RegisterForm.vue'),
+    }     
   ]
 })
 

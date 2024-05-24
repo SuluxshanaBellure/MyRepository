@@ -155,6 +155,71 @@ app.get('/books', async (req, res) => {
     });
   });
 
+  app.post('/register', (req, res) => {
+    const { username, email, password, confirmPassword, phone } = req.body;
+    
+    console.log('Received data:', { username, email, password, confirmPassword, phone });
+    
+    if (!username || !email || !password || !confirmPassword || !phone) {
+      return res.status(400).send('All fields are required');
+    }
+  
+    // Check if email already exists
+    const checkEmailQuery = `SELECT * FROM customers WHERE email_id = ?`;
+    connection.query(checkEmailQuery, [email], (err, results) => {
+      if (err) {
+        console.error('Error checking email:', err);
+        return res.status(500).send('Server error');
+      }
+      
+      if (results.length > 0) {
+        return res.status(400).send('Email already in use');
+      }
+      
+      // If email is not in use, proceed with registration
+      const query = `INSERT INTO customers (username, email_id, password, confirm_password, phone) VALUES (?, ?, ?, ?, ?)`;
+      connection.query(query, [username, email, password, confirmPassword, phone], (error, results, fields) => {
+        if (error) {
+          console.error('Error registering user:', error);
+          return res.status(400).send('Error registering user: ' + error.message);
+        }
+        
+        // Send back the username in the response
+        return res.status(201).json({ username });
+      });
+    });
+});
+  
+
+  app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+  
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+  
+    try {
+      connection.query('SELECT * FROM customers WHERE email_id = ? AND password = ?', [email, password], (error, rows) => {
+        if (error) {
+          console.error('Error during login:', error);
+          return res.status(500).json({ error: 'Internal Server Error' });
+        }
+  
+        if (rows.length > 0) {
+          // res.json({ success: true });
+          res.json({ success: true, username: rows[0].username });
+
+        } else {
+          res.status(401).json({ error: 'Invalid email or password' });
+        }
+      });
+    } catch (error) {
+      console.error('Error during login:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+      console.log("qqqq : ",res);
+    }
+  });
+  
 
 
 app.listen(port, () => {
