@@ -23,7 +23,7 @@
         </div>
         <button type="submit" class="signin-button">Sign In</button>
       </form>
-      <router-link to="/register" @click="openRegisterForm">
+      <router-link to="/register" @click="openRegisterForm" class="login-link">
         <i class="fas fa-user-plus"></i>
         Don't have an account? Create one.
       </router-link>
@@ -32,16 +32,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, defineEmits } from 'vue';
 import axios from 'axios';
+import { state, setUsername } from '../store';
 
+// Define props
+const props = defineProps({
+  username: String,
+});
+
+// Define emits
 const emits = defineEmits(['loggedIn', 'close']);
 
+// State variables
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const passwordFieldType = ref('password');
 
+// Handle sign-in process
 async function handleSignIn() {
   try {
     const response = await axios.post('http://localhost:5174/login', {
@@ -51,10 +60,10 @@ async function handleSignIn() {
 
     if (response.data.success) {
       alert('Sign in successful!');
-      emits('loggedIn', response.data.username);
+      setUsername(response.data.username);
       console.log("Logged in username: ", response.data.username);
       clearInputs();
-      closeSignInForm();
+      closeModal();
     }
   } catch (error) {
     console.error(error);
@@ -62,22 +71,34 @@ async function handleSignIn() {
   }
 }
 
+// Clear input fields
 function clearInputs() {
   email.value = '';
   password.value = '';
 }
 
+// Close sign-in form
 function closeSignInForm() {
-  emits('close');
+  emits('close'); // Emit close event
 }
 
+
+// Toggle password visibility
 function togglePasswordVisibility() {
   passwordFieldType.value = showPassword.value ? 'text' : 'password';
 }
 
+// Open register form
 function openRegisterForm() {
   emits('close');
   emits('openRegister');
+}
+function closeModal() {
+  // Find the modal element and hide it
+  const modal = document.querySelector('.modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }
 </script>
 
@@ -160,5 +181,18 @@ function openRegisterForm() {
 
 .close-button {
   margin-top: 10px;
+}
+
+.login-link {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.login-link i {
+  margin-right: 5px;
 }
 </style>

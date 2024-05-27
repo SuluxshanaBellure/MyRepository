@@ -33,13 +33,13 @@
         </div>
         <!-- Navigation Links -->
         <nav class="nav">
-          <div v-if="username" class="user-info">
-            <span class="greeting">Hello, {{ username }}</span>
+          <div v-if="state.username" class="user-info">
+            <span class="greeting">Hello, {{ state.username }}</span>
           </div>
-          <span class="user-icon" @click="openSignInForm">
+          <span v-if="!state.username" class="user-icon" @click="openSignInForm">
             <i class="fas fa-user"></i>
           </span>
-          <h4 style="color:red" @click="signOut">Sign Out</h4>
+          <h4 v-if="state.username" style="color:red; cursor: pointer;" @click="signOut">Sign Out</h4>
           <div class="cart-icon">
             <i class="fas fa-shopping-cart"></i>
           </div>
@@ -65,8 +65,9 @@
 
       <!-- Modals -->
       <div v-if="showSignInForm">
-        <SignInForm @close="closeSignInForm" @loggedIn="handleLoggedIn" />
+        <SignInForm @loggedIn="updateUsername" @close="closeSignInModal" />
       </div>
+
       <div v-if="showRegisterForm">
         <RegisterForm @close="closeRegisterForm" @registered="handleRegistered" />
       </div>
@@ -74,12 +75,11 @@
   </div>
 </template>
 
-
 <script setup>
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import SignInForm from "./views/SignInForm.vue";
 import RegisterForm from "./views/RegisterForm.vue";
-import { useRoute } from 'vue-router';
+import { state, clearUsername } from './store';
 
 const subcategories = ref([
   { name: "Books", route: "books" },
@@ -91,17 +91,11 @@ const subcategories = ref([
 const showCategories = ref(false);
 const showSignInForm = ref(false);
 const showRegisterForm = ref(false);
-const username = ref('');
-const route = useRoute();
+
+const showSignInModal = ref(true);
 
 function openSignInForm() {
   showSignInForm.value = true;
-  showRegisterForm.value = false; // Ensure only one form is displayed at a time
-}
-
-function openRegisterForm() {
-  showRegisterForm.value = true;
-  showSignInForm.value = false; // Ensure only one form is displayed at a time
 }
 
 function closeSignInForm() {
@@ -112,30 +106,23 @@ function closeRegisterForm() {
   showRegisterForm.value = false;
 }
 
-function handleRegistered(registeredUsername) {
-  username.value = registeredUsername;
-  closeRegisterForm();
-}
-
-function handleLoggedIn(loggedInUsername) {
-  username.value = loggedInUsername;
-  closeSignInForm();
-  setTimeout(() => {
-    alert(`Welcome, ${loggedInUsername}!`);
-  }, 300);
-}
-
 function signOut() {
-  username.value = '';
+  clearUsername();
 }
 
-watch(() => route.query.registered, (registered) => {
-  if (registered) {
-    // If a new user has registered, reload the page
-    window.location.reload();
-  }
-});
+function updateUsername(username) {
+  state.username = username;
+}
 
+function handleRegistered(username) {
+  state.username = username;
+  console.log("app : ",username);
+  showRegisterForm.value = false;
+  showSignInForm.value = true;
+}
+function closeSignInModal() {
+  showSignInModal.value = false;
+}
 </script>
 
 <style scoped>

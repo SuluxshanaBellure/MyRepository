@@ -1,5 +1,5 @@
 <template>
-  <div class="modal">
+  <div v-if="isModalVisible" class="modal">
     <div class="modal-content">
       <h3 class="heading">Register yourself</h3>
       <form @submit.prevent="handleRegister">
@@ -27,7 +27,10 @@
             required
             placeholder="Email"
             class="input-field"
+            @keydown="showEmailFeedback"
+            :disabled="!username"
           />
+          <span v-if="emailFeedback" class="feedback">{{ emailFeedback }}</span>
         </div>
         <div class="form-group">
           <label for="password" class="input-label">
@@ -41,7 +44,10 @@
             required
             placeholder="Password"
             class="input-field"
+            @keydown="showPasswordFeedback"
+            :disabled="!username || !email"
           />
+          <span v-if="passwordFeedback" class="feedback">{{ passwordFeedback }}</span>
         </div>
         <div class="form-group">
           <label for="confirmPassword" class="input-label">
@@ -54,6 +60,7 @@
             required
             placeholder="Confirm Password"
             class="input-field"
+            :disabled="!username || !email || !password"
           />
         </div>
         <div class="form-group checkbox-group">
@@ -75,24 +82,27 @@
             placeholder="Phone"
             class="input-field"
             @input="validatePhoneInput"
+            :disabled="!username || !email || !password || !confirmPassword"
           />
         </div>
         <button type="submit" class="register-button">Register</button>
+        <button v-if="!registrationCompleted" @click="navigateToLogin" class="login-link">
+          <i class="fas fa-sign-in-alt"></i>
+          Already have an account? Log In
+        </button>
       </form>
-      <router-link to="/login" @click="closeRegisterModal">
-        <i class="fas fa-sign-in-alt"></i>
-        Already have an account? Sign In
-      </router-link>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from 'vue-router';
 import axios from "axios";
+import { setUsername } from '../store';
 
 const emits = defineEmits(["close", "registered"]);
+const isModalVisible = ref(true);
 const username = ref("");
 const email = ref("");
 const password = ref("");
@@ -100,20 +110,58 @@ const confirmPassword = ref("");
 const phone = ref("");
 const showPassword = ref(false);
 const passwordFieldType = ref("password");
+const showEmailFeedbackFlag = ref(false);
+const showPasswordFeedbackFlag = ref(false);
+const registrationCompleted = ref(false); 
+
+const props = defineProps({
+  username: String,
+});
 
 const router = useRouter();
 
-function handleRegister() {
-  const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
-  if (!passwordRegex.test(password.value)) {
-    alert(
-      "Password must contain at least one uppercase letter, one special character, and be at least 8 characters long."
-    );
-    return;
+const passwordFeedback = computed(() => {
+  if (!showPasswordFeedbackFlag.value) return null;
+  const passwordLength = password.value.length;
+  if (passwordLength < 8) {
+    return `Password must be at least ${8 - passwordLength} more characters long.`;
   }
+  if (!/[A-Z]/.test(password.value)) {
+    return "Password must contain at least one uppercase letter.";
+  }
+  if (!/[!@#$%^&*]/.test(password.value)) {
+    return "Password must contain at least one special character.";
+  }
+  return null;
+});
+
+const emailFeedback = computed(() => {
+  if (!showEmailFeedbackFlag.value) return null;
+  const emailLength = email.value.length;
+  if (emailLength < 5) {
+    return `Email must be at least ${5 - emailLength} more characters long.`;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email.value.endsWith("@gmail.com")) {
+    return "Email must end with @gmail.com.";
+  }
+  if (!emailRegex.test(email.value)) {
+    return "Email is invalid.";
+  }
+  return null;
+});
+
+function handleRegister() {
+  showEmailFeedbackFlag.value = true;
+  showPasswordFeedbackFlag.value = true;
 
   if (password.value !== confirmPassword.value) {
     alert("Password and confirm password do not match.");
+    return;
+  }
+
+  if (emailFeedback.value || passwordFeedback.value) {
+    alert("Please fix the highlighted errors before submitting.");
     return;
   }
 
@@ -126,15 +174,12 @@ function handleRegister() {
       phone: phone.value,
     })
     .then((response) => {
-      console.log(response); // Log the entire response object
+      console.log(response);
       clearInputs();
+      setUsername(response.data.username);
+      console.log("REGISTER : ", response.data.username);
       alert("Registration successful!");
-      emits('registered', username.value);
-      closeRegisterModal();      
-      // Log specific values from the response
-      console.log("Registered username: ", response.data.values);
-      router.push({ name: 'login', query: { registered: true } });
-
+      navigateToLogin();
     })
     .catch((error) => {
       console.error(error);
@@ -155,6 +200,7 @@ function clearInputs() {
 }
 
 function closeRegisterModal() {
+  isModalVisible.value = false;
   emits("close");
 }
 
@@ -168,6 +214,22 @@ function validatePhoneInput(event) {
     event.target.value = value.replace(/[^\d]/g, "");
     phone.value = event.target.value;
   }
+}
+
+function showEmailFeedback() {
+  showEmailFeedbackFlag.value = true;
+}
+
+function showPasswordFeedback() {
+  showPasswordFeedbackFlag.value = true;
+}
+
+function navigateToLogin() {
+  router.push({ name: 'login', query: { registered: true } });
+}
+function openSignInForm() {
+  emits('close');
+  emits('openSignIn');
 }
 </script>
 
@@ -245,5 +307,28 @@ function validatePhoneInput(event) {
   font-family: cursive;
   font-size: 15px;
   margin-bottom: 20px;
+}
+
+.feedback {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+  position: absolute;
+  top: 100%;
+  left: 40px;
+  z-index: 1;
+}
+
+.login-link {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.login-link i {
+  margin-right: 5px;
 }
 </style>
