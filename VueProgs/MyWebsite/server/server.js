@@ -1,6 +1,7 @@
 import express from 'express';
 import mysql from 'mysql';
 import cors from 'cors';
+import axios from 'axios';
 
 const app = express();
 const port = 5174;
@@ -220,7 +221,19 @@ app.get('/books', async (req, res) => {
     }
   });
   
+  const apiKey = '1065e6454106eb069a211e15e0b7c4a1';
 
+  app.get('/weather', async (req, res) => {
+    try {
+      const city = req.query.city || 'hyderabad';
+      const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
+      const response = await axios.get(url);
+      res.json(response.data);
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);

@@ -47,6 +47,7 @@
           </div>
         </nav>
       </header>
+<WeatherView/>
 
       <!-- Main Content Body -->
       <main>
@@ -84,6 +85,7 @@ import { ref } from "vue";
 import SignInForm from "./views/SignInForm.vue";
 import RegisterForm from "./views/RegisterForm.vue";
 import { state, clearUsername } from './store';
+import WeatherView from "./views/WeatherView.vue";
 
 const subcategories = ref([
   { name: "Books", route: "books" },

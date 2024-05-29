@@ -1,14 +1,15 @@
-import './assets/main.css'
+import { createApp } from 'vue';
+import App from './App.vue';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import '@fortawesome/fontawesome-free/js/all.js';
-import '@fortawesome/fontawesome-free/css/all.css';
-import '@fortawesome/fontawesome-free/css/all.css';
+// Add the icons to the library
+library.add(faSearch);
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(router)
+// Register the FontAwesomeIcon component globally
+app.component('font-awesome-icon', FontAwesomeIcon);
 
-app.mount('#app')
+app.mount('#app');
