@@ -17,20 +17,35 @@
           />
         </div>
         <div class="form-group">
-          <label for="email" class="input-label">
+          <label for="email-prefix" class="input-label">
             <i class="fas fa-envelope"></i>
           </label>
-          <input
-            type="email"
-            id="email"
-            v-model="email"
-            required
-            placeholder="Email"
-            class="input-field"
-            @keydown="showEmailFeedback"
-            :disabled="!username"
-          />
-          <span v-if="emailFeedback" class="feedback">{{ emailFeedback }}</span>
+          <div class="email-group">
+            <input
+              type="text"
+              id="email-prefix"
+              v-model="emailPrefix"
+              required
+              placeholder="Email"
+              class="input-field"
+              :disabled="!username"
+            />
+            <select v-model="emailExtension" class="email-extension" :disabled="!username">
+              <option value="@gmail.com">@gmail.com</option>
+              <option value="@yahoo.com">@yahoo.com</option>
+              <option value="@outlook.com">@outlook.com</option>
+              <option value="@hotmail.com">@hotmail.com</option>
+              <option value="@custom">@custom</option>
+            </select>
+            <input
+              v-if="emailExtension === '@custom'"
+              type="text"
+              v-model="customEmailExtension"
+              required
+              placeholder="Enter domain"
+              class="input-field"
+            />
+          </div>
         </div>
         <div class="form-group">
           <label for="password" class="input-label">
@@ -44,10 +59,10 @@
             required
             placeholder="Password"
             class="input-field"
-            @keydown="showPasswordFeedback"
-            :disabled="!username || !email"
+            :disabled="!email"
+            @input="onPasswordInput"
           />
-          <span v-if="passwordFeedback" class="feedback">{{ passwordFeedback }}</span>
+          <span v-if="passwordFeedback && passwordInputTouched" class="feedback">{{ passwordFeedback }}</span>
         </div>
         <div class="form-group">
           <label for="confirmPassword" class="input-label">
@@ -60,8 +75,10 @@
             required
             placeholder="Confirm Password"
             class="input-field"
-            :disabled="!username || !email || !password"
+            :disabled="!password"
+            @input="onConfirmPasswordInput"
           />
+          <span v-if="passwordMismatch && passwordInputTouched" class="feedback">Passwords do not match</span>
         </div>
         <div class="form-group checkbox-group">
           <label for="show-password" class="checkbox-label">
@@ -82,11 +99,11 @@
             placeholder="Phone"
             class="input-field"
             @input="validatePhoneInput"
-            :disabled="!username || !email || !password || !confirmPassword"
+            :disabled="!confirmPassword"
           />
         </div>
-        <button type="submit" class="register-button">Register</button>
-        <button v-if="!registrationCompleted" @click="navigateToLogin" class="login-link">
+        <button type="submit" class="register-button" :disabled="isRegisterButtonDisabled">Register</button>
+        <button v-if="!registrationCompleted" class="login-link" @click="openSignInForm">
           <i class="fas fa-sign-in-alt"></i>
           Already have an account? Log In
         </button>
@@ -101,18 +118,19 @@ import { useRouter } from 'vue-router';
 import axios from "axios";
 import { setUsername } from '../store';
 
-const emits = defineEmits(["close", "registered"]);
+const emits = defineEmits(["close", "registered", "openSignIn"]);
 const isModalVisible = ref(true);
 const username = ref("");
-const email = ref("");
+const emailPrefix = ref("");
+const emailExtension = ref("@gmail.com");
+const customEmailExtension = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const phone = ref("");
 const showPassword = ref(false);
 const passwordFieldType = ref("password");
-const showEmailFeedbackFlag = ref(false);
-const showPasswordFeedbackFlag = ref(false);
-const registrationCompleted = ref(false); 
+const passwordInputTouched = ref(false);
+const registrationCompleted = ref(false);
 
 const props = defineProps({
   username: String,
@@ -121,54 +139,55 @@ const props = defineProps({
 const router = useRouter();
 
 const passwordFeedback = computed(() => {
-  if (!showPasswordFeedbackFlag.value) return null;
+  if (!passwordInputTouched.value) return null;
   const passwordLength = password.value.length;
-  if (passwordLength < 8) {
-    return `Password must be at least ${8 - passwordLength} more characters long.`;
-  }
+  let feedback = "";
+
+  // Check for uppercase letter
   if (!/[A-Z]/.test(password.value)) {
-    return "Password must contain at least one uppercase letter.";
+    feedback += "Password must contain at least one uppercase letter. ";
   }
+  
+  // Check for special character
   if (!/[!@#$%^&*]/.test(password.value)) {
-    return "Password must contain at least one special character.";
+    feedback += "Password must contain at least one special character. ";
   }
-  return null;
+  
+  // Check for minimum length
+  if (passwordLength < 8) {w
+    feedback += `Password must be at least ${8 - passwordLength} more characters long. `;
+  }
+
+  return feedback.trim();
 });
 
-const emailFeedback = computed(() => {
-  if (!showEmailFeedbackFlag.value) return null;
-  const emailLength = email.value.length;
-  if (emailLength < 5) {
-    return `Email must be at least ${5 - emailLength} more characters long.`;
-  }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email.value.endsWith("@gmail.com")) {
-    return "Email must end with @gmail.com.";
-  }
-  if (!emailRegex.test(email.value)) {
-    return "Email is invalid.";
-  }
-  return null;
+const passwordMismatch = computed(() => {
+  return confirmPassword.value && password.value !== confirmPassword.value;
+});
+
+const isRegisterButtonDisabled = computed(() => {
+  return !username.value || !emailPrefix.value || (emailExtension.value === "@custom" && !customEmailExtension.value) || !password.value || passwordFeedback.value || passwordMismatch.value || !phone.value;
+});
+
+const completeEmail = computed(() => {
+  return emailExtension.value === "@custom" ? `${emailPrefix.value}${customEmailExtension.value}` : `${emailPrefix.value}${emailExtension.value}`;
+});
+
+const email = computed(() => {
+  return emailPrefix.value && (emailExtension.value !== "@custom" || customEmailExtension.value);
 });
 
 function handleRegister() {
-  showEmailFeedbackFlag.value = true;
-  showPasswordFeedbackFlag.value = true;
+  passwordInputTouched.value = true;
 
-  if (password.value !== confirmPassword.value) {
-    alert("Password and confirm password do not match.");
-    return;
-  }
-
-  if (emailFeedback.value || passwordFeedback.value) {
-    alert("Please fix the highlighted errors before submitting.");
+  if (passwordFeedback.value || passwordMismatch.value) {
     return;
   }
 
   axios
     .post("http://localhost:5174/register", {
       username: username.value,
-      email: email.value,
+      email: completeEmail.value,
       password: password.value,
       confirmPassword: confirmPassword.value,
       phone: phone.value,
@@ -179,7 +198,8 @@ function handleRegister() {
       setUsername(response.data.username);
       console.log("REGISTER : ", response.data.username);
       alert("Registration successful!");
-      navigateToLogin();
+      emits('registered', response.data.username);
+      closeRegisterModal();
     })
     .catch((error) => {
       console.error(error);
@@ -193,7 +213,9 @@ function handleRegister() {
 
 function clearInputs() {
   username.value = "";
-  email.value = "";
+  emailPrefix.value = "";
+  emailExtension.value = "@gmail.com";
+  customEmailExtension.value = "";
   password.value = "";
   confirmPassword.value = "";
   phone.value = "";
@@ -216,19 +238,16 @@ function validatePhoneInput(event) {
   }
 }
 
-function showEmailFeedback() {
-  showEmailFeedbackFlag.value = true;
+function onPasswordInput() {
+  passwordInputTouched.value = true;
 }
 
-function showPasswordFeedback() {
-  showPasswordFeedbackFlag.value = true;
+function onConfirmPasswordInput() {
+  passwordInputTouched.value = true;
 }
 
-function navigateToLogin() {
-  router.push({ name: 'login', query: { registered: true } });
-}
 function openSignInForm() {
-  emits('close');
+  closeRegisterModal();
   emits('openSignIn');
 }
 </script>
@@ -270,6 +289,18 @@ function openSignInForm() {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.email-group {
+  display: flex;
+  align-items: center;
+}
+
+.email-extension {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: 10px;
 }
 
 .checkbox-group {
@@ -330,5 +361,26 @@ function openSignInForm() {
 
 .login-link i {
   margin-right: 5px;
+}
+
+/* New styles for password validation feedback */
+.feedback {
+  color: #ff4d4d;
+  background: #ffe6e6;
+  border: 1px solid #ff4d4d;
+  border-radius: 4px;
+  padding: 5px;
+  font-size: 12px;
+  position: absolute;
+  width: 100%;
+  top: 100%;
+  left: 0;
+  margin-top: 5px;
+  z-index: 1;
+}
+
+.feedback:before {
+  content: "⚠️ ";
+  font-size: 14px;
 }
 </style>

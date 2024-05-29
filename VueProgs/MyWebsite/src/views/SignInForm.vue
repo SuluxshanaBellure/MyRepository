@@ -21,7 +21,9 @@
             Show Password
           </label>
         </div>
-        <button type="submit" class="signin-button">Sign In</button>
+        <!-- Error Message -->
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <button type="submit" class="signin-button">Log In</button>
       </form>
       <router-link to="/register" @click="openRegisterForm" class="login-link">
         <i class="fas fa-user-plus"></i>
@@ -42,13 +44,14 @@ const props = defineProps({
 });
 
 // Define emits
-const emits = defineEmits(['loggedIn', 'close']);
+const emits = defineEmits(['loggedIn', 'close', 'openRegister']);
 
 // State variables
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const passwordFieldType = ref('password');
+const errorMessage = ref(''); // State variable for error message
 
 // Handle sign-in process
 async function handleSignIn() {
@@ -64,10 +67,12 @@ async function handleSignIn() {
       console.log("Logged in username: ", response.data.username);
       clearInputs();
       closeModal();
+    } else {
+      errorMessage.value = 'Invalid credentials. Please try again.'; 
     }
   } catch (error) {
     console.error(error);
-    alert('Invalid credentials. Please try again.');
+    errorMessage.value = 'Invalid credentials. Please try again.'; 
   }
 }
 
@@ -82,7 +87,6 @@ function closeSignInForm() {
   emits('close'); // Emit close event
 }
 
-
 // Toggle password visibility
 function togglePasswordVisibility() {
   passwordFieldType.value = showPassword.value ? 'text' : 'password';
@@ -93,6 +97,7 @@ function openRegisterForm() {
   emits('close');
   emits('openRegister');
 }
+
 function closeModal() {
   // Find the modal element and hide it
   const modal = document.querySelector('.modal');
@@ -194,5 +199,10 @@ function closeModal() {
 
 .login-link i {
   margin-right: 5px;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 15px;
 }
 </style>

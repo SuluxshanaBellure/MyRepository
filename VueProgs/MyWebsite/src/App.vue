@@ -35,11 +35,13 @@
         <nav class="nav">
           <div v-if="state.username" class="user-info">
             <span class="greeting">Hello, {{ state.username }}</span>
+            <h4 style="color:red; cursor: pointer;" @click="signOut">Sign Out</h4>
           </div>
           <span v-if="!state.username" class="user-icon" @click="openSignInForm">
-            <i class="fas fa-user"></i>
+            <div>
+          <b-button class="primary">LogIn/Register</b-button>
+            </div>
           </span>
-          <h4 v-if="state.username" style="color:red; cursor: pointer;" @click="signOut">Sign Out</h4>
           <div class="cart-icon">
             <i class="fas fa-shopping-cart"></i>
           </div>
@@ -64,12 +66,14 @@
       </footer>
 
       <!-- Modals -->
-      <div v-if="showSignInForm">
-        <SignInForm @loggedIn="updateUsername" @close="closeSignInModal" />
-      </div>
+      <div class="modals">
+        <div v-if="showSignInForm" class="modal">
+          <SignInForm @loggedIn="updateUsername" @close="closeSignInForm" />
+        </div>
 
-      <div v-if="showRegisterForm">
-        <RegisterForm @close="closeRegisterForm" @registered="handleRegistered" />
+        <div v-if="showRegisterForm" class="modal">
+          <RegisterForm @close="closeRegisterForm" @registered="handleRegistered" />
+        </div>
       </div>
     </div>
   </div>
@@ -92,8 +96,6 @@ const showCategories = ref(false);
 const showSignInForm = ref(false);
 const showRegisterForm = ref(false);
 
-const showSignInModal = ref(true);
-
 function openSignInForm() {
   showSignInForm.value = true;
 }
@@ -112,18 +114,16 @@ function signOut() {
 
 function updateUsername(username) {
   state.username = username;
+  showSignInForm.value = false;
 }
 
 function handleRegistered(username) {
   state.username = username;
-  console.log("app : ",username);
   showRegisterForm.value = false;
-  showSignInForm.value = true;
-}
-function closeSignInModal() {
-  showSignInModal.value = false;
+  // showSignInForm.value = true;
 }
 </script>
+
 
 <style scoped>
 .content {
