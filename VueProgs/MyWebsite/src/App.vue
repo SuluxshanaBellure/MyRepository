@@ -36,22 +36,23 @@
           <div v-if="state.username" class="user-info">
             <span class="greeting">Hello, {{ state.username }}</span>
             <h4 style="color:red; cursor: pointer;" @click="signOut">Sign Out</h4>
-          </div>
+          </div>    
           <span v-if="!state.username" class="user-icon" @click="openSignInForm">
-            <div>
-          <b-button class="primary">LogIn/Register</b-button>
-            </div>
+            <b-button class="primary">LogIn/Register</b-button>
           </span>
+          
+          <!-- <button class="weather-button" @click="openWeatherView">Weather</button> -->
+
           <div class="cart-icon">
             <i class="fas fa-shopping-cart"></i>
           </div>
         </nav>
       </header>
-<WeatherView/>
 
       <!-- Main Content Body -->
       <main>
         <router-view></router-view>
+        <WeatherView/>
       </main>
 
       <!-- Footer -->
@@ -86,6 +87,7 @@ import SignInForm from "./views/SignInForm.vue";
 import RegisterForm from "./views/RegisterForm.vue";
 import { state, clearUsername } from './store';
 import WeatherView from "./views/WeatherView.vue";
+import router from "../src/router/index";
 
 const subcategories = ref([
   { name: "Books", route: "books" },
@@ -124,13 +126,18 @@ function handleRegistered(username) {
   showRegisterForm.value = false;
   // showSignInForm.value = true;
 }
-</script>
 
+function openWeatherView() {
+  router.push('/weather');
+}
+
+</script>
 
 <style scoped>
 .content {
   /* width:100%; */
 }
+
 
 .app {
   display: flex;
@@ -236,4 +243,19 @@ main {
   text-decoration: none;
   margin-left: 0.5rem;
 }
+
+.weather-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.weather-button:hover {
+  background-color: #0056b3;
+}
+
 </style>

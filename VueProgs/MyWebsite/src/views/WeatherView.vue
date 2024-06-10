@@ -3,68 +3,90 @@
     <div v-if="weather">
       <div class="bottom-header">
         <div class="brand-container">
-          <i class="fas fa-cloud-sun" style="font-size:30px;padding-right: 173px;margin-bottom: -13px;"></i>
+          <i class="fas fa-cloud-sun" style="font-size: 30px; padding-right: 173px; margin-bottom: -13px"></i>
           <h2 class="brand">WeatherMe</h2>
           <p class="time">{{ currentTime }}</p>
         </div>
         <div class="navigation">
-          <p class="active">Today</p>
-          <p>Tomorrow</p>
-          <p>Monthly Forecast</p>
+          <p :class="{ active: currentSlide === 0 }" @click="setSlide(0)">Yesterday</p>
+          <p :class="{ active: currentSlide === 1 }" @click="setSlide(1)">Today</p>
+          <p :class="{ active: currentSlide === 2 }" @click="setSlide(2)">Tomorrow</p>
+        </div>
+        <div class="switch-container">
+          <div class="switch-labels">
+            <span>°C</span>
+            <label class="switch">
+              <input type="checkbox" v-model="switchState" @change="toggleTemperatureUnit" />
+              <span class="sliders round"></span>
+            </label>
+            <span>°F</span>
+          </div>
         </div>
       </div>
-      <label class="switch">
-        <input type="checkbox" v-model="switchState" @change="formatTemperature">
-        <span class="sliders round"></span>
-      </label>
-      <div class="search-container">
-        <input type="text" v-model="searchQuery" @keyup.enter="searchWeather" placeholder="Search city..." style="padding-left:100px" />
-        <font-awesome-icon icon="search" class="search-icon" @click="searchWeather" />
+      <div>
+        <div class="search-container">
+          <input type="text" v-model="searchQuery" @keyup.enter="searchWeather" @input="fetchCitySuggestions" placeholder="Search city..." style="padding-left: 100px; font-family: 'Poppins'" />
+          <font-awesome-icon icon="search" class="search-icon" @click="searchWeather" />
+        </div>
+
+        <div>
+          <ul v-if="suggestions.length" class="suggestions-list">
+            <li v-for="(suggestion, index) in suggestions" :key="index" @click="selectCity(suggestion)">
+              {{ suggestion.name }}, {{ suggestion.country }}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <p v-if="!isValidCity && showErrorMessage" class="error-message">City name is invalid. Please enter a valid city name.</p>
       </div>
       <div class="carousel">
         <div class="slider" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-          <div class="slide" v-if="weather" v-for="(slide, index) in slides" :key="index">
+          <div class="slide" v-for="(slide, index) in slides" :key="index">
             <div class="row1">
               <div class="city-name">
-                <span>{{ city }}</span>
-                <i style="margin-left:4px" class="fas fa-map-marker-alt location-icon"></i>
+                <span v-if="isValidCity">{{ city ? city : "" }}</span>
+                <i style="margin-left: 4px" class="fas fa-map-marker-alt location-icon"></i>
               </div>
             </div>
             <div class="row2">
               <div class="temperature-info">
                 <i class="fas fa-temperature-full temperature-icon"></i>
-                <span v-if="weather" class="temperature">{{ formattedTemperature }}</span>
-                <i class="fas fa-cloud temperature-icon" style="color: #E4D9D9;"></i>
-                <br>
+                <span class="temperature">
+                  {{ getFormattedTemperature(slide.main.temp) }}°{{ switchState ? "F" : "C" }}
+                </span>
+                <i class="fas fa-cloud temperature-icon" style="color: #e4d9d9"></i>
+                <br />
                 <div>
-                  <span class="date line">{{ formatDate(weather.dt) }}</span>
+                  <span class="date line">{{ getFormattedDate(index) }}</span>
                 </div>
               </div>
             </div>
+
             <div class="row3">
               <div class="weather-info">
                 <div class="column">
                   <p class="condition-heading">HUMIDITY</p>
-                  <p class="condition-value">{{ weather.main.humidity }}%</p>
+                  <p class="condition-value">{{ slide.main.humidity }}%</p>
                 </div>
                 <div class="column">
                   <p class="condition-heading">VISIBILITY</p>
-                  <p class="condition-value">{{ weather.visibility }} meters</p>
+                  <p class="condition-value">{{ slide.visibility }} meters</p>
                 </div>
                 <div class="column">
                   <p class="condition-heading">AIR PRESSURE</p>
-                  <p class="condition-value">{{ weather.main.pressure }} hPa</p>
+                  <p class="condition-value">{{ slide.main.pressure }} hPa</p>
                 </div>
                 <div class="column">
                   <p class="condition-heading">WIND</p>
-                  <p class="condition-value">{{ weather.wind.speed }} m/s</p>
+                  <p class="condition-value">{{ slide.wind.speed }} m/s</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="left-arrow" @click="prevSlide" :disabled="currentSlide === 0"></div>
-        <div class="right-arrow" @click="nextSlide" :disabled="isLastSlide"></div>
+        <div class="arrow left-arrow" @click="prevSlide" :disabled="currentSlide === 0"></div>
+        <div class="arrow right-arrow" @click="nextSlide" :disabled="isLastSlide"></div>
       </div>
     </div>
     <div v-else>
@@ -75,7 +97,7 @@
 
 <script>
 import axios from "axios";
-import '@fortawesome/fontawesome-free/css/all.css'
+import "@fortawesome/fontawesome-free/css/all.css";
 
 export default {
   name: "Weather",
@@ -85,125 +107,208 @@ export default {
       searchQuery: "",
       apiKey: "1065e6454106eb069a211e15e0b7c4a1",
       weather: null,
-      slides: ["Slide 1 Content", "Slide 2 Content", "Slide 3 Content"],
+      slides: [],
       currentSlide: 0,
       currentTime: this.getCurrentTime(),
       switchState: false,
-      formattedTemperature: "",
+      suggestions: [],
+      isValidCity: true,
+      showErrorMessage: false
     };
   },
   created() {
     this.fetchWeather();
     this.startClock();
   },
-  beforeDestroy() {
-    clearInterval(this.clockInterval);
-  },
   methods: {
     async fetchWeather() {
-  const currentDate = new Date();
-  const prevDate = new Date(currentDate);
-  const nextDate = new Date(currentDate);
-  
-  prevDate.setDate(prevDate.getDate() - 1); // Previous day
-  nextDate.setDate(nextDate.getDate() + 1); // Next day
-  
-  const prevDay = prevDate.getDate();
-  const currentDay = currentDate.getDate();
-  const nextDay = nextDate.getDate();
-  
-  let day;
-  
-  if (this.currentSlide === 0) {
-    day = prevDay;
-  } else if (this.currentSlide === 1) {
-    day = currentDay;
-  } else {
-    day = nextDay;
-  }
-  
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.apiKey}&units=metric`;
-  
-  try {
-    const response = await axios.get(url);
-    this.weather = response.data;
-    this.formatTemperature(); 
-  } catch (error) {
-    console.error("Error fetching weather data:", error);
-  }
-},
+      this.isValidCity = true;
+      this.showErrorMessage = false;
+      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${this.city}&appid=${this.apiKey}&units=metric`;
+      try {
+        const response = await axios.get(url);
+        if (response.data && response.data.list && response.data.list.length > 0) {
+          this.weather = response.data;
+          this.slides = this.extractWeatherData();
+          this.isValidCity = true;
+        } else {
+          this.slides = this.getEmptySlides();
+          this.isValidCity = false;
+          this.showError();
+        }
+      } catch (error) {
+        console.error("Error fetching weather data:", error);
+        this.slides = this.getEmptySlides();
+        this.isValidCity = false;
+        this.showError();
+      }
+    },
+    extractWeatherData() {
+      const slides = [];
+      if (this.weather && this.weather.list && this.weather.list.length > 0) {
+        const dailyData = this.weather.list.filter((item) =>
+          item.dt_txt.includes("12:00:00")
+        );
 
+        const currentDate = new Date();
+        const yesterdayDate = new Date(currentDate);
+        yesterdayDate.setDate(currentDate.getDate() - 1);
+        const tomorrowDate = new Date(currentDate);
+        tomorrowDate.setDate(currentDate.getDate() + 1);
+
+        const yesterdayData = this.weather.list.find((item) => {
+          const date = new Date(item.dt_txt);
+          return (
+            date.getDate() === yesterdayDate.getDate() &&
+            date.getMonth() === yesterdayDate.getMonth() &&
+            date.getFullYear() === yesterdayDate.getFullYear()
+          );
+        });
+
+        const todayData = dailyData.find((item) => {
+          const date = new Date(item.dt_txt);
+          return (
+            date.getDate() === currentDate.getDate() &&
+            date.getMonth() === currentDate.getMonth() &&
+            date.getFullYear() === currentDate.getFullYear()
+          );
+        });
+
+        const tomorrowData = dailyData.find((item) => {
+          const date = new Date(item.dt_txt);
+          return (
+            date.getDate() === tomorrowDate.getDate() &&
+            date.getMonth() === tomorrowDate.getMonth() &&
+            date.getFullYear() === tomorrowDate.getFullYear()
+          );
+        });
+
+        slides.push(yesterdayData ? yesterdayData : this.getEmptySlide());
+        slides.push(todayData ? todayData : this.getEmptySlide());
+        slides.push(tomorrowData ? tomorrowData : this.getEmptySlide());
+      } else {
+        slides.push(this.getEmptySlide());
+        slides.push(this.getEmptySlide());
+        slides.push(this.getEmptySlide());
+      }
+      return slides;
+    },
+    getEmptySlide() {
+      return {
+        main: {
+          temp: 0,
+          humidity: 0,
+          pressure: 0,
+        },
+        visibility: 0,
+        wind: {
+          speed: 0,
+        },
+      };
+    },
+    getEmptySlides() {
+      return [this.getEmptySlide(), this.getEmptySlide(), this.getEmptySlide()];
+    },
     searchWeather() {
-      if (this.searchQuery) {
-        this.city = this.searchQuery;
+      if (this.searchQuery.trim() !== "") {
+        this.city = this.searchQuery.trim();
         this.fetchWeather();
         this.searchQuery = "";
+      } else {
+        this.isValidCity = false;
+        this.showError();
       }
     },
-    formatTime(timestamp) {
-      const date = new Date(timestamp * 1000);
-      const hours = date.getHours();
-      const period = hours >= 12 ? 'pm' : 'am';
-      const formattedHours = hours % 12 || 12;
-      return `${formattedHours}:${String(date.getMinutes()).padStart(2, '0')} ${period}`;
+      showError() {
+      this.showErrorMessage = true;
+      setTimeout(() => {
+        this.showErrorMessage = false;
+      }, 2000);
     },
-    formatDate(timestamp) {
-      const options = { month: 'long', day: 'numeric', weekday: 'long' };
-      const date = new Date(timestamp * 1000);
-      return date.toLocaleDateString(undefined, options);
+    fetchCitySuggestions() {
+      const url = `https://api.openweathermap.org/data/2.5/find?q=${this.searchQuery}&appid=${this.apiKey}`;
+      axios
+        .get(url)
+        .then((response) => {
+          this.suggestions = response.data.list.map((item) => ({
+            name: item.name,
+            country: item.sys.country,
+          }));
+        })
+        .catch((error) => {
+          console.error("Error fetching city suggestions:", error);
+          this.suggestions = [];
+        });
+    },
+    selectCity(city) {
+      this.searchQuery = city.name;
+      this.city = city.name;
+      this.suggestions = [];
+      this.fetchWeather();
     },
     getCurrentTime() {
-      const date = new Date();
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const now = new Date();
+      return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     },
     startClock() {
-      this.clockInterval = setInterval(() => {
+      setInterval(() => {
         this.currentTime = this.getCurrentTime();
-      }, 1000);
+      }, 60000);
     },
-    nextSlide() {
-      if (this.currentSlide < this.slides.length - 1) {
-        this.currentSlide++;
+     getFormattedTemperature(temp) {
+      if (this.switchState) {
+        return ((temp * 9) / 5 + 32).toFixed(1); 
       }
+      return temp.toFixed(1); 
+    },
+    getFormattedDate(index) {
+      const date = new Date();
+      date.setDate(date.getDate() + index - 1);
+      const options = { weekday: "short", day: "numeric", month: "short" };
+      return date.toLocaleDateString(undefined, options);
+    },
+    formatTemperature() {
+      this.slides = this.slides.map((slide) => ({
+        ...slide,
+        main: {
+          ...slide.main,
+          temp: this.getFormattedTemperature(slide.main.temp),
+        },
+      }));
+    },
+    setSlide(index) {
+      this.currentSlide = index;
     },
     prevSlide() {
       if (this.currentSlide > 0) {
         this.currentSlide--;
       }
     },
-    formatTemperature() {
-      if (this.switchState) {
-        // Convert temperature to Fahrenheit
-        this.formattedTemperature = `${(this.weather.main.temp * 9/5 + 32).toFixed(2)}°F`;
-      } else {
-        // Display temperature in Celsius
-        this.formattedTemperature = `${this.weather.main.temp.toFixed(2)}°C`;
+    nextSlide() {
+      if (this.currentSlide < this.slides.length - 1) {
+        this.currentSlide++;
       }
     },
   },
-  computed: {
-  isLastSlide() {
-    return this.currentSlide === this.slides.length - 1;
-  }
-},
 };
 </script>
 
 <style scoped>
 .weather {
   text-align: center;
-  font-family: system-ui;
+  font-family: "Poppins";
   background-color: #595959;
   height: 500px;
 }
 
 .bottom-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   color: white;
   padding-top: 11px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
 }
 
 .brand-container {
@@ -214,7 +319,6 @@ export default {
 
 .brand {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-size: 2.5em;
   line-height: 1.5;
@@ -222,7 +326,6 @@ export default {
 }
 
 .time {
-  font-family: 'Roboto', sans-serif;
   font-size: 12px;
   color: #fff;
   margin-top: 5px;
@@ -242,14 +345,13 @@ export default {
 }
 
 .search-container input {
-  font-family: 'Roboto', sans-serif;
   font-size: 1.2em;
   padding: 10px 20px 10px 40px;
   border-radius: 15px;
   border: none;
   outline: none;
   background-color: #e6e6e6;
-  width: 300px; 
+  width: 300px;
 }
 
 .search-container .search-icon {
@@ -258,7 +360,7 @@ export default {
   font-size: 1.5em;
   cursor: pointer;
   color: #333;
-  pointer-events: none; /* Prevents click event */
+  pointer-events: none;
 }
 
 .navigation {
@@ -268,7 +370,6 @@ export default {
 }
 
 .navigation p {
-  font-family: 'Poppins', sans-serif;
   font-weight: 300;
   font-size: 1.2em;
   line-height: 1.5;
@@ -277,113 +378,85 @@ export default {
 }
 
 .navigation p.active::after {
-  content: '';
+  content: "";
   display: block;
   width: 100%;
   height: 3px;
   background-color: #e6e6e6;
-  margin-top: 3px; 
-  margin-bottom: 5px; 
+  margin-top: 3px;
+  margin-bottom: 5px;
 }
 
 .carousel {
   position: relative;
   background-color: #595959;
-  width: 60%;
+  width: 34%;
   margin: 30px auto;
 }
 
-.left-arrow {
+.arrow {
   position: absolute;
   top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  color: black;
   font-size: 2em;
   cursor: pointer;
   user-select: none;
   width: 40px;
   height: 40px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-arrow {
+  left: -50px;
 }
 
 .right-arrow {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  color: black;
-  font-size: 2em;
-  cursor: pointer;
-  user-select: none;
-  width: 40px;
-  height: 40px;
+  right: -50px;
 }
 
-/* Custom arrow styles */
 .left-arrow::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  width: 30px;
-  height: 30px;
-  border-left: 2px solid black;
-  border-bottom: 2px solid black;
+  content: "\f104";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
 }
 
 .right-arrow::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-135deg);
-  width: 30px;
-  height: 30px;
-  border-left: 2px solid black;
-  border-bottom: 2px solid black;
-}
-
-/* Hover styles */
-.left-arrow:hover::before,
-.right-arrow:hover::before {
-  border-color: #555;
+  content: "\f105";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
 }
 
 .slider {
   display: flex;
   transition: transform 0.5s ease;
-  margin-left: 20px;
-  margin-right: 20px;
 }
 
 .slide {
-  min-width: 60%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+  /* justify-content: space-between; */
+  /* align-items: center; */
   padding: 20px;
   height: 250px;
-  margin-right: 80px;
+  width: 467px;
+  margin-right: 20px;
   border-radius: 20px;
 }
 
-.slide:last-child {
-  margin-right: 0;
-}
-
 .slide:nth-child(1) {
-  background: linear-gradient(#10C38E, #0E8494);
+  background: linear-gradient(#10c38e, #0e8494);
 }
 
 .slide:nth-child(2) {
-  background: linear-gradient(#AD36CB, #333333);
+  background: linear-gradient(#ad36cb, #333333);
 }
 
 .slide:nth-child(3) {
-  background: linear-gradient(#10C38E, #0E8494);
+  background: linear-gradient(#10c38e, #0e8494);
 }
 
 .row1 {
@@ -412,7 +485,7 @@ export default {
 
 .city-name {
   color: white;
-  margin-left: -328px;
+  margin-left: -250px;
 }
 
 .temperature-info {
@@ -431,7 +504,6 @@ export default {
   color: white;
   width: 400px;
   line-height: 15px;
-  font-family: 'Poppins', sans-serif;
 }
 
 .column {
@@ -441,23 +513,20 @@ export default {
 
 .column p {
   margin: 5px 0;
-  font-family: 'Poppins', sans-serif;
 }
 
 .condition-heading {
   font-size: 12px;
-  font-family: 'Poppins', sans-serif;
 }
 
 .condition-value {
   font-size: 10px;
-  font-family: 'Poppins', sans-serif;
 }
 
 .date {
   color: white;
   font-size: 12px;
-  left: -170px;
+  left: -138px;
   position: relative;
   top: -20px;
   border-bottom: 0.5px solid white;
@@ -471,14 +540,15 @@ export default {
 .switch-container {
   display: flex;
   align-items: center;
-  margin-top: 20px;
+  justify-content: center;
+  margin-top: -8px;
 }
 
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 34px;
+  width: 47px;
+  height: 26px;
 }
 
 .switch input {
@@ -494,59 +564,62 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to right,  #43d143 100%, #c2ecbc 80%);
-  transition: .4s;
-  border-radius: 34px;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 26px;
 }
 
 .sliders:before {
   position: absolute;
   content: "";
-  height: 11px;
-  width: 13px;
-  left: 4px;
+  height: 22px;
+  width: 22px;
+  left: 2px;
   bottom: 2px;
-  background-color: #181515;
-  transition: .4s;
-}
-
-input:checked + .sliders {
-  background-color: #2196F3;
-}
-
-input:focus + .sliders {
-  box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .sliders:before {
-  transform: translateX(26px);
-}
-
-.sliders.round {
-  border-radius: 34px;
-  width: 47px;
-  height: 15px;
-  left: -604px;
-  top: -23px;
-}
-
-.sliders.round:before {
+  background-color: white;
+  transition: 0.4s;
   border-radius: 50%;
 }
 
-.switch-label {
-  margin-left: 10px;
-  font-family: 'Poppins', sans-serif;
+input:checked + .sliders {
+  background-color: #2196f3;
+}
+
+input:checked + .sliders:before {
+  transform: translateX(20px);
+}
+
+.switch-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 80px;
   color: white;
 }
 
-.temperature {
-  color: white;
-  font-size: 32px;
-  margin-right: 10px;
+.suggestions-list {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ddd;
+  width: 500px;
+  z-index: 1000;
+  list-style: none;
+  padding: 0;
+  margin-left: 410px;
 }
 
-.temperature-icon {
-  margin-right: 10px;
+.suggestions-list li {
+  padding: 10px;
+  cursor: pointer;
 }
+
+.suggestions-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
 </style>

@@ -72,7 +72,17 @@ const router = createRouter({
       path:'/register',
       name:'register',
       component:()=>import('../views/RegisterForm.vue'),
-    }     
+    },
+    {
+      path: '/weather',
+      name: 'Weather',
+      component: ()=>import('../views/WeatherView.vue'),
+    },
+    {
+      path:'/leave',
+      name:'leave',
+      component:()=>import('../views/Leaves.vue'),
+    }      
   ]
 })
 
