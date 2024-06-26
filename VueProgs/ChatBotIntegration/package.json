@@ -14,11 +14,14 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/vue-fontawesome": "^3.0.8",
+    "axios": "^1.7.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "lodash": "^4.17.21",
+    "md5": "^2.3.0",
     "sendbird": "^3.1.33",
     "vue": "^3.4.21",
+    "vue-chat-scroll": "^1.4.0",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
